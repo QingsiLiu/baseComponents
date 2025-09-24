@@ -180,7 +180,7 @@ func TestMask(t *testing.T) {
 	for _, test := range tests {
 		result := Mask(test.input, test.start, test.end, test.maskChar)
 		if result != test.expected {
-			t.Errorf("Mask(%q, %d, %d, %c) = %q, expected %q", 
+			t.Errorf("Mask(%q, %d, %d, %c) = %q, expected %q",
 				test.input, test.start, test.end, test.maskChar, result, test.expected)
 		}
 	}

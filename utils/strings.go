@@ -11,12 +11,12 @@ func ToCamelCase(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	parts := strings.Split(s, "_")
 	if len(parts) == 1 {
 		return s
 	}
-	
+
 	result := parts[0]
 	for i := 1; i < len(parts); i++ {
 		if len(parts[i]) > 0 {
@@ -31,7 +31,7 @@ func ToSnakeCase(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	var result strings.Builder
 	for i, r := range s {
 		if i > 0 && unicode.IsUpper(r) {
@@ -66,16 +66,16 @@ func Truncate(s string, length int, ellipsis ...string) string {
 	if len(s) <= length {
 		return s
 	}
-	
+
 	suffix := "..."
 	if len(ellipsis) > 0 {
 		suffix = ellipsis[0]
 	}
-	
+
 	if length <= len(suffix) {
 		return suffix[:length]
 	}
-	
+
 	return s[:length-len(suffix)] + suffix
 }
 
@@ -114,22 +114,22 @@ func Mask(s string, start, end int, maskChar rune) string {
 	if s == "" || start < 0 || end < 0 || start >= len(s) {
 		return s
 	}
-	
+
 	runes := []rune(s)
 	length := len(runes)
-	
+
 	if end > length {
 		end = length
 	}
-	
+
 	if start > end {
 		start, end = end, start
 	}
-	
+
 	for i := start; i < end; i++ {
 		runes[i] = maskChar
 	}
-	
+
 	return string(runes)
 }
 
@@ -138,16 +138,16 @@ func RandomString(length int, charset ...string) string {
 	if length <= 0 {
 		return ""
 	}
-	
+
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	if len(charset) > 0 {
 		chars = charset[0]
 	}
-	
+
 	result := make([]byte, length)
 	for i := range result {
 		result[i] = chars[i%len(chars)] // 简化版本，实际应使用随机数
 	}
-	
+
 	return string(result)
 }

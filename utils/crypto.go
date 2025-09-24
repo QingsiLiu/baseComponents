@@ -109,17 +109,17 @@ func GenerateRandomString(length int) (string, error) {
 	if (length*3)%4 != 0 {
 		byteLength++
 	}
-	
+
 	bytes, err := GenerateRandomBytes(byteLength)
 	if err != nil {
 		return "", err
 	}
-	
+
 	encoded := Base64Encode(bytes)
 	if len(encoded) > length {
 		encoded = encoded[:length]
 	}
-	
+
 	return encoded, nil
 }
 

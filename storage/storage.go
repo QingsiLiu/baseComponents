@@ -18,11 +18,11 @@ type ObjectInfo struct {
 
 // ListObjectsInput 列举对象输入参数
 type ListObjectsInput struct {
-	Bucket       string `json:"bucket"`       // 存储桶名称
-	Prefix       string `json:"prefix"`       // 前缀过滤
-	Delimiter    string `json:"delimiter"`    // 分隔符（用于目录结构）
-	MaxKeys      int32  `json:"maxKeys"`      // 最大返回数量
-	StartAfter   string `json:"startAfter"`   // 起始位置
+	Bucket            string `json:"bucket"`            // 存储桶名称
+	Prefix            string `json:"prefix"`            // 前缀过滤
+	Delimiter         string `json:"delimiter"`         // 分隔符（用于目录结构）
+	MaxKeys           int32  `json:"maxKeys"`           // 最大返回数量
+	StartAfter        string `json:"startAfter"`        // 起始位置
 	ContinuationToken string `json:"continuationToken"` // 分页令牌
 }
 
@@ -47,19 +47,19 @@ type CopyObjectInput struct {
 
 // ObjectMetadata 对象元数据
 type ObjectMetadata struct {
-	ContentType     string            `json:"contentType"`     // 内容类型
-	ContentLength   int64             `json:"contentLength"`   // 内容长度
-	LastModified    time.Time         `json:"lastModified"`    // 最后修改时间
-	ETag            string            `json:"etag"`            // ETag值
-	Metadata        map[string]string `json:"metadata"`        // 用户自定义元数据
-	StorageClass    string            `json:"storageClass"`    // 存储类别
-	ServerSideEncryption string       `json:"serverSideEncryption"` // 服务端加密
+	ContentType          string            `json:"contentType"`          // 内容类型
+	ContentLength        int64             `json:"contentLength"`        // 内容长度
+	LastModified         time.Time         `json:"lastModified"`         // 最后修改时间
+	ETag                 string            `json:"etag"`                 // ETag值
+	Metadata             map[string]string `json:"metadata"`             // 用户自定义元数据
+	StorageClass         string            `json:"storageClass"`         // 存储类别
+	ServerSideEncryption string            `json:"serverSideEncryption"` // 服务端加密
 }
 
 // StorageService 对象存储服务接口
 type StorageService interface {
 	// ===== 基础文件操作 =====
-	
+
 	// UploadObject 上传文件到存储
 	UploadObject(bucketName, fileKey string, data []byte) error
 

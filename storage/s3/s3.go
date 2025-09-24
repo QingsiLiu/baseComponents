@@ -303,13 +303,13 @@ func (s *S3Service) ListObjects(input *storage.ListObjectsInput) (*storage.ListO
 // CopyObject 复制对象
 func (s *S3Service) CopyObject(input *storage.CopyObjectInput) error {
 	copySource := fmt.Sprintf("%s/%s", input.SourceBucket, input.SourceKey)
-	
+
 	_, err := s.client.CopyObject(context.TODO(), &s3.CopyObjectInput{
 		Bucket:     aws.String(input.DestinationBucket),
 		Key:        aws.String(input.DestinationKey),
 		CopySource: aws.String(copySource),
 	})
-	
+
 	return err
 }
 
@@ -322,7 +322,7 @@ func (s *S3Service) MoveObject(sourceBucket, sourceKey, destBucket, destKey stri
 		DestinationBucket: destBucket,
 		DestinationKey:    destKey,
 	}
-	
+
 	err := s.CopyObject(copyInput)
 	if err != nil {
 		return fmt.Errorf("failed to copy object: %w", err)
@@ -452,18 +452,18 @@ func (s *S3Service) ListFolders(bucketName, prefix string) ([]string, error) {
 // PreSignDeleteObject 生成删除对象的预签名URL
 func (s *S3Service) PreSignDeleteObject(bucketName, fileKey string) (string, error) {
 	presignClient := s3.NewPresignClient(s.client)
-	
+
 	request, err := presignClient.PresignDeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fileKey),
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = 15 * time.Minute // 默认15分钟过期
 	})
-	
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	return request.URL, nil
 }
 
@@ -491,7 +491,7 @@ func (s *S3Service) GetObjectACL(bucketName, fileKey string) (string, error) {
 	if result.Owner != nil && result.Owner.DisplayName != nil {
 		return *result.Owner.DisplayName, nil
 	}
-	
+
 	return "unknown", nil
 }
 

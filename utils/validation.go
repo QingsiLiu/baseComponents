@@ -55,7 +55,7 @@ func IsIDCard(idCard string) bool {
 	if !matched {
 		return false
 	}
-	
+
 	// 验证校验码
 	return validateIDCardChecksum(idCard)
 }
@@ -65,12 +65,12 @@ func validateIDCardChecksum(idCard string) bool {
 	if len(idCard) != 18 {
 		return false
 	}
-	
+
 	// 权重因子
 	weights := []int{7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2}
 	// 校验码对应表
 	checkCodes := []string{"1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"}
-	
+
 	sum := 0
 	for i := 0; i < 17; i++ {
 		digit, err := strconv.Atoi(string(idCard[i]))
@@ -79,11 +79,11 @@ func validateIDCardChecksum(idCard string) bool {
 		}
 		sum += digit * weights[i]
 	}
-	
+
 	checkIndex := sum % 11
 	expectedCheck := checkCodes[checkIndex]
 	actualCheck := strings.ToUpper(string(idCard[17]))
-	
+
 	return expectedCheck == actualCheck
 }
 
@@ -141,12 +141,12 @@ func IsPassword(password string) bool {
 	if len(password) < 8 {
 		return false
 	}
-	
+
 	hasUpper := false
 	hasLower := false
 	hasDigit := false
 	hasSpecial := false
-	
+
 	for _, r := range password {
 		switch {
 		case unicode.IsUpper(r):
@@ -159,7 +159,7 @@ func IsPassword(password string) bool {
 			hasSpecial = true
 		}
 	}
-	
+
 	return hasUpper && hasLower && hasDigit && hasSpecial
 }
 
@@ -168,10 +168,10 @@ func IsWeakPassword(password string) bool {
 	if len(password) < 6 {
 		return false
 	}
-	
+
 	hasLetter := false
 	hasDigit := false
-	
+
 	for _, r := range password {
 		if unicode.IsLetter(r) {
 			hasLetter = true
@@ -180,7 +180,7 @@ func IsWeakPassword(password string) bool {
 			hasDigit = true
 		}
 	}
-	
+
 	return hasLetter && hasDigit
 }
 
@@ -189,17 +189,17 @@ func IsCreditCard(cardNumber string) bool {
 	// 移除空格和连字符
 	cardNumber = strings.ReplaceAll(cardNumber, " ", "")
 	cardNumber = strings.ReplaceAll(cardNumber, "-", "")
-	
+
 	// 检查是否只包含数字
 	if !IsNumeric(cardNumber) {
 		return false
 	}
-	
+
 	// 检查长度（通常13-19位）
 	if len(cardNumber) < 13 || len(cardNumber) > 19 {
 		return false
 	}
-	
+
 	// Luhn算法验证
 	return luhnCheck(cardNumber)
 }
@@ -208,25 +208,25 @@ func IsCreditCard(cardNumber string) bool {
 func luhnCheck(cardNumber string) bool {
 	sum := 0
 	alternate := false
-	
+
 	// 从右到左遍历
 	for i := len(cardNumber) - 1; i >= 0; i-- {
 		digit, err := strconv.Atoi(string(cardNumber[i]))
 		if err != nil {
 			return false
 		}
-		
+
 		if alternate {
 			digit *= 2
 			if digit > 9 {
 				digit = digit%10 + digit/10
 			}
 		}
-		
+
 		sum += digit
 		alternate = !alternate
 	}
-	
+
 	return sum%10 == 0
 }
 
@@ -234,7 +234,7 @@ func luhnCheck(cardNumber string) bool {
 func IsJSON(str string) bool {
 	str = strings.TrimSpace(str)
 	return (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
-		   (strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
+		(strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
 }
 
 // IsHexColor 验证是否为有效的十六进制颜色值

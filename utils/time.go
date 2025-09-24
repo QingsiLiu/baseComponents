@@ -171,13 +171,13 @@ func IsWorkday(t time.Time) bool {
 func Age(birthDate time.Time) int {
 	now := time.Now()
 	age := now.Year() - birthDate.Year()
-	
+
 	// 如果还没到生日，年龄减1
-	if now.Month() < birthDate.Month() || 
+	if now.Month() < birthDate.Month() ||
 		(now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
 		age--
 	}
-	
+
 	return age
 }
 
