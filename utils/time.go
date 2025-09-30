@@ -6,13 +6,29 @@ import (
 	"time"
 )
 
+// 时间格式化常量
 const (
-	// 常用时间格式
-	DateFormat     = "2006-01-02"
-	TimeFormat     = "15:04:05"
-	DateTimeFormat = "2006-01-02 15:04:05"
-	RFC3339Format  = time.RFC3339
-	UnixFormat     = "1136239445"
+	DateTimeFormat      = "2006-01-02 15:04:05" // 标准日期时间格式
+	DateTimeShortFormat = "2006-01-02 15:04"    // 短日期时间格式
+	DateFormat          = "2006-01-02"          // 日期格式
+	TimeFormat          = "15:04"               // 时间格式
+	DotDateFormat       = "2006.01.02"          // 带点的日期格式
+	YearMonthFormat     = "2006-01"             // 年月格式
+	YearFormat          = "2006"                // 年份格式
+	MonthDayFormat      = "01-02"               // 月日格式
+	ChineseDateFormat   = "2006年01月02日"         // 中文日期格式
+)
+
+// 星期常量
+const (
+	WeekdayChinese   = "周"
+	WeekdaySunday    = "日"
+	WeekdayMonday    = "一"
+	WeekdayTuesday   = "二"
+	WeekdayWednesday = "三"
+	WeekdayThursday  = "四"
+	WeekdayFriday    = "五"
+	WeekdaySaturday  = "六"
 )
 
 // Now 获取当前时间
@@ -203,4 +219,61 @@ func Sleep(d time.Duration) {
 // Timeout 创建一个超时上下文
 func Timeout(d time.Duration) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), d)
+}
+
+// Timestamp 获取当前的Unix时间戳（秒）
+func Timestamp() int64 {
+	return time.Now().Unix()
+}
+
+// 获取当前时间戳（秒）
+func GetCurrentTimestamp() int32 {
+	return int32(time.Now().Unix())
+}
+
+// 获取当前时间戳（毫秒）
+func GetCurrentTimestampMs() int64 {
+	return time.Now().UnixNano() / 1e6
+}
+
+// 取当天的开始时间戳以及结束时间戳
+func GetDayStartAndEndTimestamp(arrangingTime int32) (int64, int64) {
+	// 使用传入的时间戳创建时间对象
+	now := time.Unix(int64(arrangingTime), 0)
+
+	// 获取传入日期的零点
+	dayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	// 获取第二天零点前一秒
+	dayEnd := dayStart.Add(24 * time.Hour).Add(-time.Second)
+
+	return dayStart.Unix(), dayEnd.Unix()
+}
+
+// 取本周的开始时间戳以及结束时间戳
+func GetWeekStartAndEndTimestamp(arrangingTime int32) (int64, int64) {
+	now := time.Unix(int64(arrangingTime), 0)
+
+	offset := int(time.Monday - now.Weekday())
+	if offset > 0 {
+		offset = -6
+	}
+
+	// 获取本周一零点
+	weekStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, offset)
+	// 获取下周一零点前一秒
+	weekEnd := weekStart.AddDate(0, 0, 7).Add(-time.Second)
+
+	return weekStart.Unix(), weekEnd.Unix()
+}
+
+// 取本月的开始时间戳以及结束时间戳
+func GetMonthStartAndEndTimestamp(arrangingTime int32) (int64, int64) {
+	now := time.Unix(int64(arrangingTime), 0)
+
+	// 获取本月第一天零点
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	// 获取下月第一天零点前一秒
+	monthEnd := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location()).Add(-time.Second)
+
+	return monthStart.Unix(), monthEnd.Unix()
 }
