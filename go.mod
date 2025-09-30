@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.31.10
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.19.8
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.2
+	github.com/duke-git/lancet/v2 v2.3.7
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-chi/render v1.0.3
 )
@@ -52,6 +53,7 @@ require (
 	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
