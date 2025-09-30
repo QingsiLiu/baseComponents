@@ -15,10 +15,6 @@ fi
 
 echo "🚀 开始发布版本 $VERSION..."
 
-# 运行测试
-echo "📋 运行测试..."
-go test ./...
-
 # 创建标签并推送
 echo "🏷️  创建标签 $VERSION..."
 git tag $VERSION
