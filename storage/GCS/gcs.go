@@ -20,7 +20,7 @@ type GCSClient struct {
 	projectID string
 	ctx       context.Context
 }
-
+  
 // NewGCSClient 创建新的 GCS 客户端
 func NewGCSClient(projectID string, credentialsFile string) (*GCSClient, error) {
 	ctx := context.Background()
