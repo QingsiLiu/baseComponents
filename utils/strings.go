@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 	"unicode"
 )
 
@@ -134,12 +136,21 @@ func Mask(s string, start, end int, maskChar rune) string {
 	return string(runes)
 }
 
+var (
+	r    *rand.Rand
+	once sync.Once
+)
+
+func initRand() {
+	once.Do(func() {
+		r = rand.New(rand.NewSource(time.Now().UnixNano()))
+	})
+}
+
 // RandomString 生成指定长度的随机字符串
 func RandomString(length int) string {
+	initRand()
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-	// 初始化随机数生成器
-	r := rand.New(rand.NewSource(GetCurrentTimestampMs()))
 
 	// 生成随机字符串
 	result := make([]byte, length)
