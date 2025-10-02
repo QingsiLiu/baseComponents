@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"math/rand"
 	"regexp"
 	"strings"
 	"unicode"
@@ -134,19 +135,16 @@ func Mask(s string, start, end int, maskChar rune) string {
 }
 
 // RandomString 生成指定长度的随机字符串
-func RandomString(length int, charset ...string) string {
-	if length <= 0 {
-		return ""
-	}
+func RandomString(length int) string {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	if len(charset) > 0 {
-		chars = charset[0]
-	}
+	// 初始化随机数生成器
+	r := rand.New(rand.NewSource(GetCurrentTimestampMs()))
 
+	// 生成随机字符串
 	result := make([]byte, length)
 	for i := range result {
-		result[i] = chars[i%len(chars)] // 简化版本，实际应使用随机数
+		result[i] = letters[r.Intn(len(letters))]
 	}
 
 	return string(result)
