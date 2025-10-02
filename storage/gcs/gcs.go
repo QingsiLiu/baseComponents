@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 	"time"
 
@@ -20,21 +21,21 @@ type GCSClient struct {
 	projectID string
 	ctx       context.Context
 }
-  
+
 // NewGCSClient 创建新的 GCS 客户端
 func NewGCSClient(projectID string, credentialsFile string) (*GCSClient, error) {
 	ctx := context.Background()
-	
+
 	var client *gcs.Client
 	var err error
-	
+
 	if credentialsFile != "" {
 		client, err = gcs.NewClient(ctx, option.WithCredentialsFile(credentialsFile))
 	} else {
 		// 使用默认凭据（环境变量或服务账号）
 		client, err = gcs.NewClient(ctx)
 	}
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to create GCS client: %v", err)
 	}
@@ -57,13 +58,13 @@ func (g *GCSClient) Close() error {
 func (g *GCSClient) UploadObject(bucketName, fileKey string, data []byte) error {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	writer := obj.NewWriter(g.ctx)
 	defer writer.Close()
-	
+
 	// 设置内容类型
 	writer.ContentType = storage.GetContentType(fileKey)
-	
+
 	_, err := writer.Write(data)
 	return err
 }
@@ -72,13 +73,13 @@ func (g *GCSClient) UploadObject(bucketName, fileKey string, data []byte) error 
 func (g *GCSClient) UploadObjectStream(bucketName, fileKey string, file io.Reader) error {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	writer := obj.NewWriter(g.ctx)
 	defer writer.Close()
-	
+
 	// 设置内容类型
 	writer.ContentType = storage.GetContentType(fileKey)
-	
+
 	_, err := io.Copy(writer, file)
 	return err
 }
@@ -87,13 +88,13 @@ func (g *GCSClient) UploadObjectStream(bucketName, fileKey string, file io.Reade
 func (g *GCSClient) GetObject(bucketName, fileKey string) ([]byte, error) {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	reader, err := obj.NewReader(g.ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer reader.Close()
-	
+
 	return io.ReadAll(reader)
 }
 
@@ -101,7 +102,7 @@ func (g *GCSClient) GetObject(bucketName, fileKey string) ([]byte, error) {
 func (g *GCSClient) HeadObject(bucketName, fileKey string) bool {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	_, err := obj.Attrs(g.ctx)
 	return err == nil
 }
@@ -110,7 +111,7 @@ func (g *GCSClient) HeadObject(bucketName, fileKey string) bool {
 func (g *GCSClient) DeleteObject(bucketName, fileKey string) error {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	return obj.Delete(g.ctx)
 }
 
@@ -118,14 +119,14 @@ func (g *GCSClient) DeleteObject(bucketName, fileKey string) error {
 func (g *GCSClient) DeleteObjects(bucketName string, fileKeys []string) ([]string, error) {
 	var failedKeys []string
 	bucket := g.client.Bucket(bucketName)
-	
+
 	for _, key := range fileKeys {
 		obj := bucket.Object(key)
 		if err := obj.Delete(g.ctx); err != nil {
 			failedKeys = append(failedKeys, key)
 		}
 	}
-	
+
 	return failedKeys, nil
 }
 
@@ -134,27 +135,27 @@ func (g *GCSClient) DeleteObjects(bucketName string, fileKeys []string) ([]strin
 // ListObjects 列举对象
 func (g *GCSClient) ListObjects(input *storage.ListObjectsInput) (*storage.ListObjectsOutput, error) {
 	bucket := g.client.Bucket(input.Bucket)
-	
+
 	query := &gcs.Query{
 		Prefix:    input.Prefix,
 		Delimiter: input.Delimiter,
 	}
-	
+
 	if input.StartAfter != "" {
 		query.StartOffset = input.StartAfter
 	}
-	
+
 	it := bucket.Objects(g.ctx, query)
-	
+
 	var objects []storage.ObjectInfo
 	var commonPrefixes []string
 	var keyCount int32
-	
+
 	for {
 		if input.MaxKeys > 0 && keyCount >= input.MaxKeys {
 			break
 		}
-		
+
 		attrs, err := it.Next()
 		if err == iterator.Done {
 			break
@@ -162,7 +163,7 @@ func (g *GCSClient) ListObjects(input *storage.ListObjectsInput) (*storage.ListO
 		if err != nil {
 			return nil, err
 		}
-		
+
 		if attrs.Prefix != "" {
 			// 这是一个公共前缀（目录）
 			commonPrefixes = append(commonPrefixes, attrs.Prefix)
@@ -179,7 +180,7 @@ func (g *GCSClient) ListObjects(input *storage.ListObjectsInput) (*storage.ListO
 		}
 		keyCount++
 	}
-	
+
 	return &storage.ListObjectsOutput{
 		Objects:        objects,
 		CommonPrefixes: commonPrefixes,
@@ -192,20 +193,20 @@ func (g *GCSClient) ListObjects(input *storage.ListObjectsInput) (*storage.ListO
 func (g *GCSClient) CopyObject(input *storage.CopyObjectInput) error {
 	srcBucket := g.client.Bucket(input.SourceBucket)
 	srcObj := srcBucket.Object(input.SourceKey)
-	
+
 	dstBucket := g.client.Bucket(input.DestinationBucket)
 	dstObj := dstBucket.Object(input.DestinationKey)
-	
+
 	copier := dstObj.CopierFrom(srcObj)
-	
+
 	if input.ContentType != "" {
 		copier.ContentType = input.ContentType
 	}
-	
+
 	if input.Metadata != nil {
 		copier.Metadata = input.Metadata
 	}
-	
+
 	_, err := copier.Run(g.ctx)
 	return err
 }
@@ -219,11 +220,11 @@ func (g *GCSClient) MoveObject(sourceBucket, sourceKey, destBucket, destKey stri
 		DestinationBucket: destBucket,
 		DestinationKey:    destKey,
 	}
-	
+
 	if err := g.CopyObject(copyInput); err != nil {
 		return err
 	}
-	
+
 	// 再删除源对象
 	return g.DeleteObject(sourceBucket, sourceKey)
 }
@@ -232,12 +233,12 @@ func (g *GCSClient) MoveObject(sourceBucket, sourceKey, destBucket, destKey stri
 func (g *GCSClient) GetObjectMetadata(bucketName, fileKey string) (*storage.ObjectMetadata, error) {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	attrs, err := obj.Attrs(g.ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &storage.ObjectMetadata{
 		ContentType:          attrs.ContentType,
 		ContentLength:        attrs.Size,
@@ -256,7 +257,7 @@ func (g *GCSClient) CreateFolder(bucketName, folderPath string) error {
 	if !strings.HasSuffix(folderPath, "/") {
 		folderPath += "/"
 	}
-	
+
 	return g.UploadObject(bucketName, folderPath, []byte{})
 }
 
@@ -265,28 +266,28 @@ func (g *GCSClient) DeleteFolder(bucketName, folderPath string) error {
 	if !strings.HasSuffix(folderPath, "/") {
 		folderPath += "/"
 	}
-	
+
 	// 列出所有以该前缀开头的对象
 	input := &storage.ListObjectsInput{
 		Bucket: bucketName,
 		Prefix: folderPath,
 	}
-	
+
 	output, err := g.ListObjects(input)
 	if err != nil {
 		return err
 	}
-	
+
 	// 删除所有对象
 	var keys []string
 	for _, obj := range output.Objects {
 		keys = append(keys, obj.Key)
 	}
-	
+
 	if len(keys) > 0 {
 		_, err = g.DeleteObjects(bucketName, keys)
 	}
-	
+
 	return err
 }
 
@@ -297,12 +298,12 @@ func (g *GCSClient) ListFolders(bucketName, prefix string) ([]string, error) {
 		Prefix:    prefix,
 		Delimiter: "/",
 	}
-	
+
 	output, err := g.ListObjects(input)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return output.CommonPrefixes, nil
 }
 
@@ -315,26 +316,23 @@ func (g *GCSClient) PreSignPutObject(bucketName, fileKey string) (string, error)
 		Method:  "PUT",
 		Expires: time.Now().Add(15 * time.Minute),
 	}
-	
+
 	return g.client.Bucket(bucketName).SignedURL(fileKey, opts)
 }
 
 // BatchPreSignPutObject 批量生成预签名上传URL
 func (g *GCSClient) BatchPreSignPutObject(bucketName string, fileKeys []string, isWholeKey bool) map[string]string {
 	result := make(map[string]string)
-	
+
 	for _, key := range fileKeys {
 		url, err := g.PreSignPutObject(bucketName, key)
-		if err == nil {
-			if isWholeKey {
-				result[key] = url
-			} else {
-				// 如果不是完整键，可能需要处理键名
-				result[key] = url
-			}
+		if err != nil {
+			log.Printf("Failed to pre-sign put object %s: %v", key, err)
+			continue
 		}
+		result[key] = url
 	}
-	
+
 	return result
 }
 
@@ -345,7 +343,7 @@ func (g *GCSClient) PreSignGetObject(bucketName, fileKey string) (string, error)
 		Method:  "GET",
 		Expires: time.Now().Add(15 * time.Minute),
 	}
-	
+
 	return g.client.Bucket(bucketName).SignedURL(fileKey, opts)
 }
 
@@ -356,7 +354,7 @@ func (g *GCSClient) PreSignDeleteObject(bucketName, fileKey string) (string, err
 		Method:  "DELETE",
 		Expires: time.Now().Add(15 * time.Minute),
 	}
-	
+
 	return g.client.Bucket(bucketName).SignedURL(fileKey, opts)
 }
 
@@ -366,9 +364,9 @@ func (g *GCSClient) PreSignDeleteObject(bucketName, fileKey string) (string, err
 func (g *GCSClient) SetObjectACL(bucketName, fileKey, acl string) error {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	var aclRule gcs.ACLRule
-	
+
 	switch acl {
 	case "public-read":
 		aclRule = gcs.ACLRule{
@@ -381,7 +379,7 @@ func (g *GCSClient) SetObjectACL(bucketName, fileKey, acl string) error {
 	default:
 		return fmt.Errorf("unsupported ACL: %s", acl)
 	}
-	
+
 	return obj.ACL().Set(g.ctx, aclRule.Entity, aclRule.Role)
 }
 
@@ -389,19 +387,19 @@ func (g *GCSClient) SetObjectACL(bucketName, fileKey, acl string) error {
 func (g *GCSClient) GetObjectACL(bucketName, fileKey string) (string, error) {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	rules, err := obj.ACL().List(g.ctx)
 	if err != nil {
 		return "", err
 	}
-	
+
 	// 检查是否有公共读取权限
 	for _, rule := range rules {
 		if rule.Entity == gcs.AllUsers && rule.Role == gcs.RoleReader {
 			return "public-read", nil
 		}
 	}
-	
+
 	return "private", nil
 }
 
@@ -409,11 +407,11 @@ func (g *GCSClient) GetObjectACL(bucketName, fileKey string) (string, error) {
 func (g *GCSClient) SetObjectMetadata(bucketName, fileKey string, metadata map[string]string) error {
 	bucket := g.client.Bucket(bucketName)
 	obj := bucket.Object(fileKey)
-	
+
 	attrs := gcs.ObjectAttrsToUpdate{
 		Metadata: metadata,
 	}
-	
+
 	_, err := obj.Update(g.ctx, attrs)
 	return err
 }
