@@ -10,6 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -214,4 +215,67 @@ func AESDecryptString(ciphertext, key string) (string, error) {
 	}
 
 	return string(decrypted), nil
+}
+
+// EncryptPrompt 使用AES-GCM对称加密算法加密字符串
+func EncryptPrompt(plainText, key string) (string, error) {
+	// 创建密码区块
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", err
+	}
+
+	// 创建GCM模式
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	// 创建随机nonce
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return "", err
+	}
+
+	// 加密
+	cipherText := aesGCM.Seal(nonce, nonce, []byte(plainText), nil)
+
+	// Base64编码以便于传输
+	return base64.StdEncoding.EncodeToString(cipherText), nil
+}
+
+// DecryptPrompt 解密被AES-GCM加密的字符串
+func DecryptPrompt(encryptedText, key string) (string, error) {
+	// Base64解码
+	cipherText, err := base64.StdEncoding.DecodeString(encryptedText)
+	if err != nil {
+		return "", err
+	}
+
+	// 创建密码区块
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", err
+	}
+
+	// 创建GCM模式
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	// 获取nonce大小
+	nonceSize := aesGCM.NonceSize()
+	if len(cipherText) < nonceSize {
+		return "", errors.New("加密文本长度不足")
+	}
+
+	// 提取nonce并解密
+	nonce, cipherTextBytes := cipherText[:nonceSize], cipherText[nonceSize:]
+	plainTextBytes, err := aesGCM.Open(nil, nonce, cipherTextBytes, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plainTextBytes), nil
 }
