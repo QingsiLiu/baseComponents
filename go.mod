@@ -1,6 +1,6 @@
 module github.com/QingsiLiu/baseComponents
 
-go 1.24.5
+go 1.24.0
 
 require (
 	cloud.google.com/go/storage v1.57.0

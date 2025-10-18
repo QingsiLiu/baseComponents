@@ -21,6 +21,7 @@ var serviceConfigs = []ServiceInfo{
 	{Source: "replicate_controlnet", ServiceType: "rcn"},
 	{Source: "modelslab_interior", ServiceType: "mli"},
 	{Source: "modelslab_exterior", ServiceType: "mle"},
+	{Source: "kie_nano_banana", ServiceType: "knb"},
 }
 
 // 常量定义 - 从配置表自动生成
@@ -30,6 +31,7 @@ const (
 	SourceReplicateControlNet = "replicate_controlnet"
 	SourceModelsLabInterior   = "modelslab_interior"
 	SourceModelsLabExterior   = "modelslab_exterior"
+	SourceKieNanoBanana       = "kie_nano_banana"
 )
 
 const (
@@ -38,6 +40,7 @@ const (
 	ServiceTypeModelsLabExterior   = "mle"
 	ServiceTypeReplicateNanoBanana = "rnb"
 	ServiceTypeReplicateControlNet = "rcn"
+	ServiceTypeKieNanoBanana       = "knb"
 )
 
 // 初始化时自动生成的映射表和切片
