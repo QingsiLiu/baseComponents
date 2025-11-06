@@ -2,6 +2,7 @@ package kie
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/QingsiLiu/baseComponents/service/image2image"
@@ -58,6 +59,14 @@ func (s *NanoBananaService) TaskRun(req *image2image.Image2ImageTaskRunReq) (str
 
 // TaskGet 查询任务
 func (s *NanoBananaService) TaskGet(taskId string) (*image2image.Image2ImageTaskInfo, error) {
+	if strings.HasPrefix(taskId, "mock_task_id_") {
+		return &image2image.Image2ImageTaskInfo{
+			TaskId:   taskId,
+			Status:   image2image.TaskStatusCompleted,
+			Result:   []string{"https://kie.ai/cdn-cgi/image/width=1920,quality=85,fit=scale-down,format=webp/https://file.aiquickdraw.com/custom-page/akr/section-images/1756260298615p09gs2nz.webp"},
+			Duration: 5,
+		}, nil
+	}
 	resp, err := s.client.GetTaskRecord(taskId)
 	if err != nil {
 		return nil, err

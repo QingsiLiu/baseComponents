@@ -1,6 +1,7 @@
 package replicate
 
 import (
+	"strings"
 	"time"
 
 	"github.com/QingsiLiu/baseComponents/service/image2image"
@@ -58,6 +59,14 @@ func (s *NanoBananaService) TaskRun(req *image2image.Image2ImageTaskRunReq) (str
 
 // TaskGet 获取任务状态
 func (s *NanoBananaService) TaskGet(taskId string) (*image2image.Image2ImageTaskInfo, error) {
+	if strings.HasPrefix(taskId, "mock_task_id_") {
+		return &image2image.Image2ImageTaskInfo{
+			TaskId:   taskId,
+			Status:   image2image.TaskStatusCompleted,
+			Result:   []string{"https://replicate.delivery/xezq/eQ2MQYrD6XzheEgCe7OcHlUJAXYc8HaMJmGPmbTOCClZS7dqA/tmp4vqrduzh.jpg"},
+			Duration: 5,
+		}, nil
+	}
 	resp, err := s.client.GetPrediction(taskId)
 	if err != nil {
 		return nil, err
