@@ -22,6 +22,7 @@ type Image2ImageTaskRunReq struct {
 	OutputFormat      string   `json:"output_format"`     // 输出格式，如 jpg, png
 	OutputQuality     int      `json:"output_quality"`
 	NumInferenceSteps int      `json:"num_inference_steps"`
+	Debug             bool     `json:"debug"`
 }
 
 // Image2ImageTaskInfo 图生图任务信息

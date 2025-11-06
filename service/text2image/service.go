@@ -28,6 +28,7 @@ type Text2ImageTaskRunReq struct {
 	OutputFormat      string  `json:"output_format"`
 	OutputQuality     int     `json:"output_quality"`
 	NumInferenceSteps int     `json:"num_inference_steps"`
+	Debug             bool    `json:"debug"`
 }
 
 // Text2ImageTaskInfo 文本生成图像任务信息

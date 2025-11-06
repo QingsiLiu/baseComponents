@@ -1,8 +1,10 @@
 package replicate
 
 import (
-	"github.com/QingsiLiu/baseComponents/service/image2image"
 	"time"
+
+	"github.com/QingsiLiu/baseComponents/service/image2image"
+	"github.com/QingsiLiu/baseComponents/utils"
 )
 
 const (
@@ -36,6 +38,9 @@ func (s *NanoBananaService) Source() string {
 
 // TaskRun 提交 NanoBanana 任务
 func (s *NanoBananaService) TaskRun(req *image2image.Image2ImageTaskRunReq) (string, error) {
+	if req.Debug {
+		return "mock_task_id_" + utils.RandomString(5), nil
+	}
 	input := s.convertToNanoBananaInput(req)
 
 	predReq := &PredictionRequest{

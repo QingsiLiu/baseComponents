@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/QingsiLiu/baseComponents/service/image2image"
+	"github.com/QingsiLiu/baseComponents/utils"
 )
 
 const (
@@ -38,6 +39,9 @@ func (s *NanoBananaService) Source() string {
 
 // TaskRun 提交任务
 func (s *NanoBananaService) TaskRun(req *image2image.Image2ImageTaskRunReq) (string, error) {
+	if req.Debug {
+		return "mock_task_id_" + utils.RandomString(5), nil
+	}
 	payload := s.convertToCreateRequest(req)
 
 	resp, err := s.client.CreateTask(payload)
