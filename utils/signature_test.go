@@ -59,7 +59,7 @@ func TestGenerateSignature(t *testing.T) {
 
 	// 测试用例1：基本参数
 	params1 := map[string]string{
-		"user_id":   "E21AA95E-1DDD-44E2-AF18-B95B0C8282AF",
+		"user_id":   "C6B179E4-DFCA-478A-8532-E03732E878A5",
 		"platform":  "ios",
 		"timestamp": "1762161115",
 		"salt":      "3ZC9wC0j",

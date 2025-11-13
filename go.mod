@@ -13,6 +13,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/larksuite/oapi-sdk-go/v3 v3.4.25
+	github.com/spf13/pflag v1.0.10
 	google.golang.org/api v0.251.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gen v0.3.27
@@ -95,7 +96,10 @@ require (
 	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
+	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
+	go.uber.org/multierr v1.5.0 // indirect
+	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
 	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
@@ -115,4 +119,5 @@ require (
 	gorm.io/datatypes v1.2.4 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.5.0 // indirect
+	k8s.io/klog v1.0.0 // indirect
 )
