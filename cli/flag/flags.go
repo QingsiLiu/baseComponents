@@ -8,7 +8,7 @@ import (
 	goflag "flag"
 	"strings"
 
-	"github.com/marmotedu/log"
+	"github.com/QingsiLiu/baseComponents/log"
 	"github.com/spf13/pflag"
 )
 
