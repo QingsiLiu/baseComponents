@@ -23,7 +23,7 @@ type GCSClient struct {
 }
 
 // NewGCSClient 创建新的 GCS 客户端
-func NewGCSClient(projectID string, credentialsFile string) (*GCSClient, error) {
+func NewGCSClient(projectID string, credentialsFile string) (storage.StorageService, error) {
 	ctx := context.Background()
 
 	var client *gcs.Client
