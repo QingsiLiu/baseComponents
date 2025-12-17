@@ -24,18 +24,20 @@ var serviceConfigs = []ServiceInfo{
 
 // 常量定义 - 从配置表自动生成
 const (
-	SourceOwner                = "owner"
-	SourceReplicateFluxSchnell = "replicate_flux-schnell"
-	SourceReplicateFlux1Dev    = "replicate_flux1dev"
-	SourceModelslabFlux        = "modelslab_flux"
+	SourceOwner                         = "owner"
+	SourceReplicateFluxSchnell          = "replicate_flux-schnell"
+	SourceReplicateFlux1Dev             = "replicate_flux1dev"
+	SourceModelslabFlux                 = "modelslab_flux"
+	SourceReplicatePrunaAIQwenImageFast = "replicate_prunaai_qwen_image_fast"
 )
 
 // 服务类型混淆映射常量
 const (
-	ServiceTypeOwner                = "0"
-	ServiceTypeReplicateFluxSchnell = "rfc"
-	ServiceTypeReplicateFlux1Dev    = "rf1d"
-	ServiceTypeModelslabFlux        = "mlf"
+	ServiceTypeOwner                         = "0"
+	ServiceTypeReplicateFluxSchnell          = "rfc"
+	ServiceTypeReplicateFlux1Dev             = "rf1d"
+	ServiceTypeModelslabFlux                 = "mlf"
+	ServiceTypeReplicatePrunaAIQwenImageFast = "rpqf"
 )
 
 // 初始化时自动生成的映射表和切片

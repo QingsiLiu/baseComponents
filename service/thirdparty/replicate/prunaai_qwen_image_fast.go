@@ -32,7 +32,7 @@ func NewPrunaAIQwenImageFastServiceWithKey(token string) text2image.Text2ImageSe
 
 // Source implements text2image.Text2ImageService.
 func (p *PrunaAIQwenImageFastService) Source() string {
-	return "replicate_prunaai_qwen_image_fast"
+	return text2image.SourceReplicatePrunaAIQwenImageFast
 }
 
 // TaskRun implements text2image.Text2ImageService.
