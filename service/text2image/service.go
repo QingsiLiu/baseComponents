@@ -12,23 +12,24 @@ type Text2ImageService interface {
 // Text2ImageTaskReq 文本生成图像任务请求
 // 常见文生图参数，未来根据实际业务持续补充
 type Text2ImageTaskRunReq struct {
-	Model             string  `json:"model"`
-	Style             string  `json:"style"`
-	ImageWidth        int     `json:"image_width"`
-	ImageHeight       int     `json:"image_height"`
-	ImageSize         int     `json:"image_size"`
-	Seed              int     `json:"seed"`
-	Prompt            string  `json:"prompt"`
-	NegativePrompt    string  `json:"negative_prompt"`
-	Guidance          float64 `json:"guidance"`
-	Megapixels        int     `json:"megapixels"`
-	SpeedMode         string  `json:"speed_mode"`
-	NumOutputs        int     `json:"num_outputs"`
-	AspectRatio       string  `json:"aspect_ratio"`
-	OutputFormat      string  `json:"output_format"`
-	OutputQuality     int     `json:"output_quality"`
-	NumInferenceSteps int     `json:"num_inference_steps"`
-	Debug             bool    `json:"debug"`
+	Model                string  `json:"model"`
+	Style                string  `json:"style"`
+	ImageWidth           int     `json:"image_width"`
+	ImageHeight          int     `json:"image_height"`
+	ImageSize            int     `json:"image_size"`
+	Seed                 int     `json:"seed"`
+	Prompt               string  `json:"prompt"`
+	NegativePrompt       string  `json:"negative_prompt"`
+	Guidance             float64 `json:"guidance"`
+	Megapixels           int     `json:"megapixels"`
+	SpeedMode            string  `json:"speed_mode"`
+	NumOutputs           int     `json:"num_outputs"`
+	AspectRatio          string  `json:"aspect_ratio"`
+	OutputFormat         string  `json:"output_format"`
+	OutputQuality        int     `json:"output_quality"`
+	NumInferenceSteps    int     `json:"num_inference_steps"`
+	DisableSafetyChecker bool    `json:"disable_safety_checker"`
+	Debug                bool    `json:"debug"`
 }
 
 // Text2ImageTaskInfo 文本生成图像任务信息
