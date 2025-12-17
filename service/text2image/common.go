@@ -20,6 +20,7 @@ var serviceConfigs = []ServiceInfo{
 	{Source: "replicate_flux-schnell", ServiceType: "rfc"},
 	{Source: "replicate_flux1dev", ServiceType: "rf1d"},
 	{Source: "modelslab_flux", ServiceType: "mlf"},
+	{Source: "replicate_prunaai_qwen_image_fast", ServiceType: "rpqf"},
 }
 
 // 常量定义 - 从配置表自动生成
