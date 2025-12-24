@@ -8,19 +8,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ErrResponse defines the return messages when an error occurred.
-// Reference will be omitted if it does not exist.
+// Response defines the unified return messages.
 // swagger:model
-type ErrResponse struct {
+type Response struct {
 	// Code defines the business error code.
 	Code int `json:"code"`
 
 	// Message contains the detail of this message.
-	// This message is suitable to be exposed to external
+	// This message is suitable to be exposed to external.
 	Message string `json:"message"`
 
-	// Reference returns the reference document which maybe useful to solve this error.
-	Reference string `json:"reference,omitempty"`
+	// Data contains the response payload when no error occurred.
+	Data interface{} `json:"data"`
 }
 
 // WriteResponse write an error or the response data into http response body.
@@ -30,14 +29,18 @@ func WriteResponse(c *gin.Context, err error, data interface{}) {
 	if err != nil {
 		log.Errorf("%#+v", err)
 		coder := errors.ParseCoder(err)
-		c.JSON(coder.HTTPStatus(), ErrResponse{
-			Code:      coder.Code(),
-			Message:   coder.String(),
-			Reference: coder.Reference(),
+		c.JSON(coder.HTTPStatus(), Response{
+			Code:    coder.Code(),
+			Message: coder.String(),
+			Data:    nil,
 		})
 
 		return
 	}
 
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, Response{
+		Code:    0,
+		Message: "success",
+		Data:    data,
+	})
 }
