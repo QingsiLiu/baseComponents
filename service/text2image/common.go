@@ -19,8 +19,10 @@ var serviceConfigs = []ServiceInfo{
 	{Source: "owner", ServiceType: "0"},
 	{Source: "replicate_flux-schnell", ServiceType: "rfc"},
 	{Source: "replicate_flux1dev", ServiceType: "rf1d"},
+	{Source: "replicate_qwen_image", ServiceType: "rqi"},
 	{Source: "modelslab_flux", ServiceType: "mlf"},
 	{Source: "replicate_prunaai_qwen_image_fast", ServiceType: "rpqf"},
+	{Source: "kie_qwen_image_text2image", ServiceType: "kqi"},
 }
 
 // 常量定义 - 从配置表自动生成
@@ -28,8 +30,10 @@ const (
 	SourceOwner                         = "owner"
 	SourceReplicateFluxSchnell          = "replicate_flux-schnell"
 	SourceReplicateFlux1Dev             = "replicate_flux1dev"
+	SourceReplicateQwenImage            = "replicate_qwen_image"
 	SourceModelslabFlux                 = "modelslab_flux"
 	SourceReplicatePrunaAIQwenImageFast = "replicate_prunaai_qwen_image_fast"
+	SourceKieQwenImageText2Image        = "kie_qwen_image_text2image"
 )
 
 // 服务类型混淆映射常量
@@ -37,8 +41,10 @@ const (
 	ServiceTypeOwner                         = "0"
 	ServiceTypeReplicateFluxSchnell          = "rfc"
 	ServiceTypeReplicateFlux1Dev             = "rf1d"
+	ServiceTypeReplicateQwenImage            = "rqi"
 	ServiceTypeModelslabFlux                 = "mlf"
 	ServiceTypeReplicatePrunaAIQwenImageFast = "rpqf"
+	ServiceTypeKieQwenImageText2Image        = "kqi"
 )
 
 // 初始化时自动生成的映射表和切片

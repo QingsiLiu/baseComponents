@@ -21,6 +21,7 @@ type Text2ImageTaskRunReq struct {
 	Prompt               string  `json:"prompt"`
 	NegativePrompt       string  `json:"negative_prompt"`
 	Guidance             float64 `json:"guidance"`
+	Strength             float64 `json:"strength"`
 	Megapixels           int     `json:"megapixels"`
 	SpeedMode            string  `json:"speed_mode"`
 	NumOutputs           int     `json:"num_outputs"`
