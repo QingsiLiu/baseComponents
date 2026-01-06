@@ -21,6 +21,7 @@ type Image2ImageTaskRunReq struct {
 	OutputImageSize   string   `json:"output_image_size"` // 输出图片尺寸，如 512x512；或比例，例如 3:4
 	OutputFormat      string   `json:"output_format"`     // 输出格式，如 jpg, png
 	OutputQuality     int      `json:"output_quality"`
+	Resolution        string   `json:"resolution"`
 	NumInferenceSteps int      `json:"num_inference_steps"`
 	Debug             bool     `json:"debug"`
 }

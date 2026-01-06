@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	nanoBananaModelName = "google/nano-banana-edit"
-	defaultImageSize    = "auto"
+	nanoBananaModelName     = "google/nano-banana"
+	nanoBananaEditModelName = "google/nano-banana-edit"
+	nanoBananaProModelName  = "nano-banana-pro"
 )
 
 // NanoBananaService KIE Nano Banana 服务实现
@@ -91,25 +92,50 @@ func (s *NanoBananaService) TaskList() ([]*image2image.Image2ImageTaskInfo, erro
 
 func (s *NanoBananaService) convertToCreateRequest(req *image2image.Image2ImageTaskRunReq) *TaskCreateRequest {
 	model := req.Model
-	if model == "" {
-		model = nanoBananaModelName
-	}
+	switch model {
+	case "":
+		if len(req.ImageInputs) > 0 {
+			model = nanoBananaEditModelName
+		} else {
+			model = nanoBananaModelName
+		}
 
-	input := &NanoBananaInput{
-		Prompt:       req.Prompt,
-		OutputFormat: req.OutputFormat,
-		ImageURLs:    req.ImageInputs,
-		ImageSize:    req.OutputImageSize,
-	}
+		input := &NanoBananaInput{
+			Prompt:       req.Prompt,
+			OutputFormat: req.OutputFormat,
+			ImageURLs:    req.ImageInputs,
+			ImageSize:    req.OutputImageSize,
+		}
 
-	if input.OutputFormat == "" {
-		input.OutputFormat = "jpeg"
-	}
+		if input.OutputFormat == "" {
+			input.OutputFormat = "png"
+		}
 
-	return &TaskCreateRequest{
-		Model: model,
-		Input: input,
+		return &TaskCreateRequest{
+			Model: model,
+			Input: input,
+		}
+	case nanoBananaProModelName:
+		model = nanoBananaProModelName
+		input := &NanoBananaProInput{
+			Prompt:       req.Prompt,
+			ImageInput:   req.ImageInputs,
+			AspectRatio:  req.OutputImageSize,
+			Resolution:   req.Resolution,
+			OutputFormat: req.OutputFormat,
+		}
+		if input.Resolution == "" {
+			input.Resolution = "1K"
+		}
+		if input.OutputFormat == "" {
+			input.OutputFormat = "png"
+		}
+		return &TaskCreateRequest{
+			Model: model,
+			Input: input,
+		}
 	}
+	return nil
 }
 
 func (s *NanoBananaService) convertToTaskInfo(detail *TaskRecordDetail) *image2image.Image2ImageTaskInfo {

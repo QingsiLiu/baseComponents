@@ -30,6 +30,14 @@ type NanoBananaInput struct {
 	ImageURLs    []string `json:"image_urls,omitempty"`
 }
 
+type NanoBananaProInput struct {
+	Prompt       string   `json:"prompt"`
+	ImageInput   []string `json:"image_input,omitempty"`
+	AspectRatio  string   `json:"aspect_ratio,omitempty"`
+	Resolution   string   `json:"resolution,omitempty"`
+	OutputFormat string   `json:"output_format,omitempty"`
+}
+
 // TaskCreateResponse 创建任务响应
 type TaskCreateResponse struct {
 	Code    int                `json:"code"`
