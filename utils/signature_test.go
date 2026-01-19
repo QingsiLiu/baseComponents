@@ -59,12 +59,12 @@ func TestGenerateSignature(t *testing.T) {
 
 	// 测试用例1：基本参数
 	params1 := map[string]string{
-		"user_id":   "C6B179E4-DFCA-478A-8532-E03732E878A5",
+		"user_id":   "9633C2AB-23D8-460A-AE54-8966262186E8",
 		"platform":  "ios",
 		"timestamp": "1762161115",
 		"salt":      "3ZC9wC0j",
 	}
-	secretKey1 := "Zt4QmR7xFp2Wv9KdNs6Jh1LyGo3Ua0BiCe8Xl5TqMrYwSnVbPkDfAzHuOjEgIc"
+	secretKey1 := "3fA7kB2qXv6Lz8WnT0JyR9cE1UMopgNdZsQiHbY5VtCxlGuMPAeKjDwhSnrFOVbX"
 	salt1 := "3ZC9wC0j"
 
 	signature1 := tool.GenerateSignature(params1, secretKey1, salt1)

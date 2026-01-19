@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	PixverseV5ModelVersion = "pixverse/pixverse-v5:cf6e2a0bdd454edd53bfc950e7e807f31e6f3e1b2cf789a2e2c2d6acb71e4db7"
+	PixverseV5ModelVersion = "pixverse/pixverse-v5"
 )
 
 type PixverseV5Service struct {
