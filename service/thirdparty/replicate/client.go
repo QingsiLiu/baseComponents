@@ -55,7 +55,7 @@ func (c *Client) CreatePrediction(req *PredictionRequest) (*PredictionResponse, 
 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+c.apiToken)
-	httpReq.Header.Set("Prefer", "wait")
+	httpReq.Header.Set("Prefer", "respond-async")
 
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
