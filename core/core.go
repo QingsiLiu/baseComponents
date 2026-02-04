@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/QingsiLiu/baseComponents/errors"
@@ -27,7 +28,7 @@ type Response struct {
 // errors.Coder contains error code, user-safe error message and http status code.
 func WriteResponse(c *gin.Context, err error, data interface{}) {
 	if err != nil {
-		log.Errorf("%#+v", err)
+		log.L(c).Errorw("API Error", "error", fmt.Sprintf("%#+v", err))
 		coder := errors.ParseCoder(err)
 		c.JSON(coder.HTTPStatus(), Response{
 			Code:    coder.Code(),
