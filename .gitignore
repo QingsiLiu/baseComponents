@@ -71,3 +71,7 @@ testdata/output/
 # Cache directories
 .cache/
 .go-cache/
+
+findings.md
+progress.md
+task_plan.md
