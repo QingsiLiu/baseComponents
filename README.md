@@ -27,6 +27,10 @@
 - **S3**: 完整的AWS S3文件管理器，支持文件上传下载、目录操作、预签名URL等
 - **Local**: 本地文件存储（规划中）
 
+### 🤖 AI 能力 (service)
+- **LLM**: 通用多模态 LLM 抽象，支持文本、图片、文档等内容输入
+- **WellAPI Gemini**: 基于 Gemini 原生 `generateContent` 的 provider，实现结构化输出、函数调用、URL Context、Google Search、Code Execution
+
 ### 📋 其他组件（规划中）
 - **HTTP组件**: 客户端、服务器、中间件
 - **数据库组件**: MySQL、Redis、MongoDB
@@ -130,6 +134,44 @@ func main() {
 }
 ```
 
+### Gemini 原生能力示例
+
+```go
+package main
+
+import (
+    "log"
+
+    "github.com/QingsiLiu/baseComponents/service/llm"
+    "github.com/QingsiLiu/baseComponents/service/thirdparty/wellapi"
+)
+
+func main() {
+    service := wellapi.NewGeminiService()
+
+    resp, err := service.Generate(&llm.GenerateReq{
+        Messages: []llm.Message{
+            {
+                Role: "user",
+                Parts: []llm.Part{
+                    {Text: "Reply with OK only."},
+                },
+            },
+        },
+        MaxOutputTokens: 16,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Println(resp.Text)
+}
+```
+
+更完整的文本生成、结构化输出、函数调用、图片理解与模型列表示例请查看：
+
+- [`service/thirdparty/wellapi/README.md`](service/thirdparty/wellapi/README.md)
+
 ## 🏗️ 开发
 
 ### 环境要求
@@ -186,6 +228,10 @@ make help
 
 ```
 baseComponents/
+├── service/            # AI 能力抽象与第三方服务封装
+│   ├── llm/           # 通用多模态 LLM 接口
+│   └── thirdparty/    # 第三方 provider 实现
+│       └── wellapi/   # WellAPI + Gemini 原生实现
 ├── storage/            # 存储组件
 │   ├── s3/            # AWS S3 存储实现
 │   │   ├── s3.go      # S3服务实现
