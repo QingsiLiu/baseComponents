@@ -3,7 +3,6 @@ package kie
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/QingsiLiu/baseComponents/service/text2image"
 	"github.com/QingsiLiu/baseComponents/utils"
@@ -114,28 +113,12 @@ func (s *QwenText2ImageService) convertToCreateRequest(req *text2image.Text2Imag
 
 func (s *QwenText2ImageService) convertToTaskInfo(detail *TaskRecordDetail) *text2image.Text2ImageTaskInfo {
 	task := &text2image.Text2ImageTaskInfo{
-		TaskId: detail.TaskID,
-		Status: ConvertStateToStatus(detail.State),
-		Result: ParseResultURLs(detail.ResultJSON),
-	}
-
-	if detail.CreateTime > 0 {
-		task.CreateTime = int32(time.UnixMilli(detail.CreateTime).Unix())
-	}
-	if detail.UpdateTime > 0 {
-		task.UpdateTime = int32(time.UnixMilli(detail.UpdateTime).Unix())
-	}
-
-	var endTime int64
-	switch {
-	case detail.CompleteTime > 0:
-		endTime = detail.CompleteTime
-	case detail.UpdateTime > 0:
-		endTime = detail.UpdateTime
-	}
-
-	if endTime > 0 && detail.CreateTime > 0 && endTime >= detail.CreateTime {
-		task.Duration = (time.Duration(endTime-detail.CreateTime) * time.Millisecond).Seconds()
+		TaskId:     detail.TaskID,
+		Status:     ConvertStateToStatus(detail.State),
+		Result:     ParseResultURLs(detail.ResultJSON),
+		CreateTime: UnixMillisToSeconds(detail.CreateTime),
+		UpdateTime: ResolveTaskUpdateTime(detail),
+		Duration:   ResolveTaskDuration(detail),
 	}
 
 	return task

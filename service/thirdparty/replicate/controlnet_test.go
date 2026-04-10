@@ -9,7 +9,9 @@ import (
 
 // TestControlNetService_TaskRun 测试任务提交功能
 func TestControlNetService_TaskRun(t *testing.T) {
-	service := NewControlNetServiceWithKey("")
+	requireReplicateToken(t)
+
+	service := NewControlNetService()
 	req := &image2image.Image2ImageTaskRunReq{
 		Prompt:            "Create a photorealistic interior image of a Coastal style living room. Coastal design evokes a relaxed, beachside feel through a light and airy color palette, primarily featuring shades of white, blue, and sand. It emphasizes natural light and incorporates organic materials like jute, rattan, and weathered wood.",
 		ImageInputs:       []string{"https://example.com/test-image.jpg"},

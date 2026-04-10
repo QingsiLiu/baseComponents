@@ -2,8 +2,7 @@ package kie
 
 import (
 	"encoding/json"
-
-	"github.com/QingsiLiu/baseComponents/service/image2image"
+	"time"
 )
 
 // 任务状态常量
@@ -13,6 +12,14 @@ const (
 	TaskStateGenerating = "generating"
 	TaskStateSuccess    = "success"
 	TaskStateFail       = "fail"
+)
+
+const (
+	TaskStatusPending int32 = iota
+	TaskStatusRunning
+	TaskStatusCompleted
+	TaskStatusCanceled
+	TaskStatusFailed
 )
 
 // TaskCreateRequest 创建任务请求
@@ -50,7 +57,8 @@ type NanoBanana2Input struct {
 // TaskCreateResponse 创建任务响应
 type TaskCreateResponse struct {
 	Code    int                `json:"code"`
-	Message string             `json:"message"`
+	Message string             `json:"message,omitempty"`
+	Msg     string             `json:"msg,omitempty"`
 	Data    *TaskCreatePayload `json:"data,omitempty"`
 }
 
@@ -62,7 +70,8 @@ type TaskCreatePayload struct {
 // TaskRecordResponse 任务记录响应
 type TaskRecordResponse struct {
 	Code    int               `json:"code"`
-	Message string            `json:"message"`
+	Message string            `json:"message,omitempty"`
+	Msg     string            `json:"msg,omitempty"`
 	Data    *TaskRecordDetail `json:"data,omitempty"`
 }
 
@@ -75,6 +84,7 @@ type TaskRecordDetail struct {
 	ResultJSON   string `json:"resultJson"`
 	FailCode     string `json:"failCode"`
 	FailMsg      string `json:"failMsg"`
+	CostTime     int64  `json:"costTime"`
 	CompleteTime int64  `json:"completeTime"`
 	CreateTime   int64  `json:"createTime"`
 	UpdateTime   int64  `json:"updateTime"`
@@ -92,16 +102,81 @@ type TaskResultEnvelope struct {
 func ConvertStateToStatus(state string) int32 {
 	switch state {
 	case TaskStateSuccess:
-		return image2image.TaskStatusCompleted
+		return TaskStatusCompleted
 	case TaskStateGenerating:
-		return image2image.TaskStatusRunning
+		return TaskStatusRunning
 	case TaskStateFail:
-		return image2image.TaskStatusFailed
+		return TaskStatusFailed
 	case TaskStateWaiting, TaskStateQueuing:
-		return image2image.TaskStatusPending
+		return TaskStatusPending
 	default:
-		return image2image.TaskStatusPending
+		return TaskStatusPending
 	}
+}
+
+func (r *TaskCreateResponse) GetMessage() string {
+	if r == nil {
+		return ""
+	}
+	if r.Message != "" {
+		return r.Message
+	}
+	return r.Msg
+}
+
+func (r *TaskRecordResponse) GetMessage() string {
+	if r == nil {
+		return ""
+	}
+	if r.Message != "" {
+		return r.Message
+	}
+	return r.Msg
+}
+
+func UnixMillisToSeconds(ms int64) int32 {
+	if ms <= 0 {
+		return 0
+	}
+	return int32(time.UnixMilli(ms).Unix())
+}
+
+func ResolveTaskUpdateTime(detail *TaskRecordDetail) int32 {
+	if detail == nil {
+		return 0
+	}
+	switch {
+	case detail.UpdateTime > 0:
+		return UnixMillisToSeconds(detail.UpdateTime)
+	case detail.CompleteTime > 0:
+		return UnixMillisToSeconds(detail.CompleteTime)
+	case detail.CreateTime > 0:
+		return UnixMillisToSeconds(detail.CreateTime)
+	default:
+		return 0
+	}
+}
+
+func ResolveTaskDuration(detail *TaskRecordDetail) float64 {
+	if detail == nil {
+		return 0
+	}
+	if detail.CostTime > 0 {
+		return (time.Duration(detail.CostTime) * time.Millisecond).Seconds()
+	}
+
+	var endTime int64
+	switch {
+	case detail.CompleteTime > 0:
+		endTime = detail.CompleteTime
+	case detail.UpdateTime > 0:
+		endTime = detail.UpdateTime
+	}
+	if endTime > 0 && detail.CreateTime > 0 && endTime >= detail.CreateTime {
+		return (time.Duration(endTime-detail.CreateTime) * time.Millisecond).Seconds()
+	}
+
+	return 0
 }
 
 // ParseResultURLs 从 resultJson 字段提取结果链接

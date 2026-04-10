@@ -69,15 +69,6 @@ func (s *GeminiService) resolveModels(req *llm.GenerateReq) ([]string, bool) {
 		return []string{model}, true
 	}
 
-	thinkingBudget := 0
-	if req.ThinkingBudget != nil {
-		thinkingBudget = *req.ThinkingBudget
-	}
-
-	if thinkingBudget > 0 {
-		return []string{ModelGemini3FlashPreviewThinking}, false
-	}
-
 	return []string{
 		ModelGemini3FlashPreview,
 		ModelGemini31FlashLitePreview,

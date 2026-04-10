@@ -2,15 +2,17 @@ package replicate
 
 import (
 	"fmt"
-	"math/rand"
 	"github.com/QingsiLiu/baseComponents/service/image2image"
+	"math/rand"
 	"testing"
 	"time"
 )
 
 // TestNanoBananaService_TaskRun 测试任务提交功能
 func TestNanoBananaService_TaskRun(t *testing.T) {
-	service := NewNanoBananaServiceWithKey("")
+	requireReplicateToken(t)
+
+	service := NewNanoBananaService()
 	req := &image2image.Image2ImageTaskRunReq{
 		Prompt: "Make the sheets in the style of the logo. Make the scene natural.",
 		ImageInputs: []string{

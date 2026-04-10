@@ -1,5 +1,7 @@
 package text2image
 
+import "github.com/QingsiLiu/baseComponents/internal/taskstatus"
+
 // Text2ImageService 文本生成图像服务接口
 type Text2ImageService interface {
 	Source() string
@@ -44,17 +46,5 @@ type Text2ImageTaskInfo struct {
 }
 
 func (t *Text2ImageTaskInfo) GetStatusName(status int32) string {
-	switch status {
-	case TaskStatusPending:
-		return "pending"
-	case TaskStatusRunning:
-		return "running"
-	case TaskStatusCompleted:
-		return "completed"
-	case TaskStatusCanceled:
-		return "canceled"
-	case TaskStatusFailed:
-		return "failed"
-	}
-	return "unknown"
+	return taskstatus.Name(status)
 }

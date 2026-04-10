@@ -29,7 +29,14 @@
 
 ### 🤖 AI 能力 (service)
 - **LLM**: 通用多模态 LLM 抽象，支持文本、图片、文档等内容输入
+- **Text2Image**: 通用文生图抽象
+- **Image2Image**: 通用图生图抽象
+- **AIVideo**: 通用视频生成抽象
+- **AIVideo / Kling**: 面向 Kling 专属复杂能力的子包，承接动作控制、视频特效等 provider-specific 协议
 - **WellAPI Gemini**: 基于 Gemini 原生 `generateContent` 的 provider，实现结构化输出、函数调用、URL Context、Google Search、Code Execution
+- **WellAPI OpenAI**: 基于 WellAPI 的 OpenAI 兼容 provider，封装 `/v1/responses` 与 `/v1/chat/completions`
+- **WellAPI Kling**: 基于 WellAPI 的 Kling 异步任务服务，支持动作控制、视频特效等能力
+- **KIE**: 聚合 KIE 下的文生图、图生图、视频生成模型接入
 
 ### 📋 其他组件（规划中）
 - **HTTP组件**: 客户端、服务器、中间件
@@ -134,7 +141,7 @@ func main() {
 }
 ```
 
-### Gemini 原生能力示例
+### WellAPI Gemini 能力示例
 
 ```go
 package main
@@ -171,6 +178,47 @@ func main() {
 更完整的文本生成、结构化输出、函数调用、图片理解与模型列表示例请查看：
 
 - [`service/thirdparty/wellapi/README.md`](service/thirdparty/wellapi/README.md)
+
+AI 能力的目录约定：
+
+- 顶层 `service/*` 优先按能力域组织，例如 `llm`、`text2image`、`image2image`、`aivideo`
+- 复杂且明显 provider-specific 的协议，优先放到能力域下的子包中，例如 `service/aivideo/kling`
+- `service/thirdparty/*` 只放 provider 实现，不再承担顶层能力抽象的职责
+
+### WellAPI OpenAI 能力示例
+
+```go
+package main
+
+import (
+    "log"
+
+    "github.com/QingsiLiu/baseComponents/service/llm"
+    "github.com/QingsiLiu/baseComponents/service/thirdparty/wellapi"
+)
+
+func main() {
+    service := wellapi.NewOpenAIService()
+
+    resp, err := service.Generate(&llm.GenerateReq{
+        Model: wellapi.ModelGPT54Mini,
+        Messages: []llm.Message{
+            {
+                Role: "user",
+                Parts: []llm.Part{
+                    {Text: "Reply with OK only."},
+                },
+            },
+        },
+        MaxOutputTokens: 16,
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Println(resp.Text)
+}
+```
 
 ## 🏗️ 开发
 
@@ -231,7 +279,7 @@ baseComponents/
 ├── service/            # AI 能力抽象与第三方服务封装
 │   ├── llm/           # 通用多模态 LLM 接口
 │   └── thirdparty/    # 第三方 provider 实现
-│       └── wellapi/   # WellAPI + Gemini 原生实现
+│       └── wellapi/   # WellAPI Gemini 原生 + OpenAI 兼容实现
 ├── storage/            # 存储组件
 │   ├── s3/            # AWS S3 存储实现
 │   │   ├── s3.go      # S3服务实现

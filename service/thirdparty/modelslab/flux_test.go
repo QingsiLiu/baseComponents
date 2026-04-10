@@ -7,7 +7,9 @@ import (
 )
 
 func TestFluxTaskRun(t *testing.T) {
-	service := NewFluxServiceWithKey("")
+	requireModelsLabAPIKey(t)
+
+	service := NewFluxService()
 	req := &text2image.Text2ImageTaskRunReq{
 		Prompt: "A simple red circle on white background",
 	}

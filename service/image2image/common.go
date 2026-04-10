@@ -1,11 +1,16 @@
 package image2image
 
+import (
+	"github.com/QingsiLiu/baseComponents/internal/serviceregistry"
+	"github.com/QingsiLiu/baseComponents/internal/taskstatus"
+)
+
 const (
-	TaskStatusPending = iota
-	TaskStatusRunning
-	TaskStatusCompleted
-	TaskStatusCanceled
-	TaskStatusFailed
+	TaskStatusPending   int32 = taskstatus.Pending
+	TaskStatusRunning   int32 = taskstatus.Running
+	TaskStatusCompleted int32 = taskstatus.Completed
+	TaskStatusCanceled  int32 = taskstatus.Canceled
+	TaskStatusFailed    int32 = taskstatus.Failed
 )
 
 // ServiceInfo 服务信息结构体
@@ -53,17 +58,11 @@ var (
 
 // init 初始化函数，自动从配置表生成所有映射关系
 func init() {
-	serviceTypeMap = make(map[string]string, len(serviceConfigs))
-	serviceSourceMap = make(map[string]string, len(serviceConfigs))
-	AllServiceSource = make([]string, 0, len(serviceConfigs))
-	AllServiceType = make([]string, 0, len(serviceConfigs))
-
-	for _, config := range serviceConfigs {
-		serviceTypeMap[config.Source] = config.ServiceType
-		serviceSourceMap[config.ServiceType] = config.Source
-		AllServiceSource = append(AllServiceSource, config.Source)
-		AllServiceType = append(AllServiceType, config.ServiceType)
-	}
+	registry := serviceregistry.New(toRegistryConfigs(serviceConfigs))
+	serviceTypeMap = registry.TypeBySource()
+	serviceSourceMap = registry.SourceByType()
+	AllServiceSource = registry.AllServiceSource()
+	AllServiceType = registry.AllServiceType()
 }
 
 // GetServiceType 获取混淆后的任务类型标识符
@@ -100,4 +99,15 @@ func GetAllServiceConfigs() []ServiceInfo {
 	configs := make([]ServiceInfo, len(serviceConfigs))
 	copy(configs, serviceConfigs)
 	return configs
+}
+
+func toRegistryConfigs(configs []ServiceInfo) []serviceregistry.Config {
+	out := make([]serviceregistry.Config, 0, len(configs))
+	for _, config := range configs {
+		out = append(out, serviceregistry.Config{
+			Source:      config.Source,
+			ServiceType: config.ServiceType,
+		})
+	}
+	return out
 }

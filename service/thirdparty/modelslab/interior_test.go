@@ -7,7 +7,9 @@ import (
 )
 
 func TestInteriorTaskRun(t *testing.T) {
-	service := NewInteriorServiceWithKey("")
+	requireModelsLabAPIKey(t)
+
+	service := NewInteriorService()
 	req := &image2image.Image2ImageTaskRunReq{
 		Prompt: `Redesign only the interior of the bedroom in the provided image into a glamorous, luxurious, and symmetrical Art Deco Style room. Highest Priority: The primary task is to introduce a complete and stylistically perfect Art Deco bed setup with realistic and proportionate dimensions as the room's focal point. THE BED: The Glamorous Centerpiece
 Frame and Headboard: The bed must be the glamorous centerpiece, featuring a tall, symmetrical headboard with bold geometric shapes, sunburst patterns, or stepped forms. The frame is made of high-gloss lacquer or rich, dark wood with polished brass or chrome inlays.

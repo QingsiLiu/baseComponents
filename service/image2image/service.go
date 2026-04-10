@@ -1,5 +1,7 @@
 package image2image
 
+import "github.com/QingsiLiu/baseComponents/internal/taskstatus"
+
 // Image2ImageService 图生图服务接口
 type Image2ImageService interface {
 	Source() string
@@ -38,17 +40,5 @@ type Image2ImageTaskInfo struct {
 }
 
 func (t *Image2ImageTaskInfo) GetStatusName(status int32) string {
-	switch status {
-	case TaskStatusPending:
-		return "pending"
-	case TaskStatusRunning:
-		return "running"
-	case TaskStatusCompleted:
-		return "completed"
-	case TaskStatusCanceled:
-		return "canceled"
-	case TaskStatusFailed:
-		return "failed"
-	}
-	return "unknown"
+	return taskstatus.Name(status)
 }

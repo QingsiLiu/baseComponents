@@ -1,24 +1,36 @@
-# WellAPI Gemini
+# WellAPI
 
-`wellapi` 包提供基于 **WellAPI + Gemini 原生 `generateContent`** 的正式实现，推荐作为多模态 LLM 的统一接入层。
+`wellapi` 包当前提供两类能力：
+
+- LLM provider
+  - `NewGeminiService`：封装 Gemini 原生 `generateContent`
+  - `NewOpenAIService`：封装 OpenAI 兼容的 `/v1/responses` 与 `/v1/chat/completions`
+- Kling 异步任务服务
+  - `NewKlingMotionControlService`
+  - `NewKlingEffectsService`
 
 当前能力：
 
 - 文本生成
-- 图片 / 文档 / 音频 / 视频等 base64 内联输入
+- 图片等 base64 内联输入
 - 结构化 JSON 输出
 - 函数调用
-- URL Context
-- Google Search
-- Code Execution
 - 模型列表查询
+- Gemini 原生扩展：URL Context、Google Search、Code Execution
+- Kling 异步任务：动作控制、视频特效
 
 设计约束：
 
-- 正式 API 只封装 **Gemini 原生格式**
-- 不推荐业务方直接使用 `/v1/chat/completions`
+- Gemini provider 继续优先封装 **Gemini 原生格式**
+- OpenAI provider 在 v1 只支持公共抽象里的通用子集，不暴露 Responses 专属字段
+- OpenAI provider 暂不支持 `EnableURLContext` / `EnableGoogleSearch` / `EnableCodeExecution`
 - 调用方负责将媒体内容编码为 base64，本 SDK 不负责下载远程文件
-- 默认会发送 `thinkingBudget=0`，避免空文本或只消耗 reasoning token
+- Gemini 默认会发送 `thinkingBudget=0`，避免空文本或只消耗 reasoning token
+
+已内置的常用模型：
+
+- Gemini：`gemini-3.1-flash-lite-preview`、`gemini-3.1-pro-preview`、`gemini-3-pro-preview`、`gemini-3-flash-preview`、`gemini-2.5-pro`、`gemini-2.5-flash`
+- OpenAI：`gpt-5.4-mini`、`gpt-5.4-mini-2026-03-17`、`gpt-5.4-nano`、`gpt-5.4-nano-2026-03-17`、`gpt-5.4`、`gpt-5-mini-2025-08-07`、`gpt-5-nano-2025-08-07`
 
 ## 环境变量
 
@@ -27,7 +39,42 @@ export WELLAPI_API_KEY="your-token"
 export WELLAPI_BASE_URL="https://wellapi.ai" # 可选
 ```
 
-## 文本生成
+## Kling 异步任务
+
+Kling 相关能力属于异步任务协议，不走 `service/llm`，而是走 `service/aivideo/kling` 定义的领域接口：
+
+- `wellapi.NewKlingMotionControlService()`
+- `wellapi.NewKlingEffectsService()`
+
+调用方可以直接使用：
+
+```go
+package main
+
+import (
+	"log"
+
+	aivideokling "github.com/QingsiLiu/baseComponents/service/aivideo/kling"
+	"github.com/QingsiLiu/baseComponents/service/thirdparty/wellapi"
+)
+
+func main() {
+	service := wellapi.NewKlingMotionControlService()
+
+	taskID, err := service.TaskRun(&aivideokling.KlingMotionControlTaskRunReq{
+		ImageURL:             "https://example.com/image.png",
+		VideoURL:             "https://example.com/video.mp4",
+		CharacterOrientation: "image",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(taskID)
+}
+```
+
+## Gemini 文本生成
 
 ```go
 package main
@@ -43,6 +90,41 @@ func main() {
 	service := wellapi.NewGeminiService()
 
 	resp, err := service.Generate(&llm.GenerateReq{
+		Messages: []llm.Message{
+			{
+				Role: "user",
+				Parts: []llm.Part{
+					{Text: "Reply with OK only."},
+				},
+			},
+		},
+		MaxOutputTokens: 16,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+log.Println(resp.Text)
+}
+```
+
+## OpenAI 文本生成
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/QingsiLiu/baseComponents/service/llm"
+	"github.com/QingsiLiu/baseComponents/service/thirdparty/wellapi"
+)
+
+func main() {
+	service := wellapi.NewOpenAIService()
+
+	resp, err := service.Generate(&llm.GenerateReq{
+		Model: wellapi.ModelGPT54Mini,
 		Messages: []llm.Message{
 			{
 				Role: "user",

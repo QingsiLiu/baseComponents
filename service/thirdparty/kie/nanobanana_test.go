@@ -167,7 +167,9 @@ func TestNanoBananaService_convertToCreateRequest_NanoBanana2(t *testing.T) {
 }
 
 func TestNanoBananaService_TaskRun(t *testing.T) {
-	service := NewNanoBananaServiceWithKey("")
+	requireKIEAPIKey(t)
+
+	service := NewNanoBananaService()
 	req := &image2image.Image2ImageTaskRunReq{
 		Prompt: "Make the sheets in the style of the logo. Make the scene natural.",
 		ImageInputs: []string{

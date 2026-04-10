@@ -95,9 +95,14 @@ func (p *PixverseV5Service) TaskList() ([]*aivideo.AIVideoTaskInfo, error) {
 
 // convertToPixverseInput 将通用请求转换为 Pixverse V5 输入格式
 func (p *PixverseV5Service) convertToPixverseInput(req *aivideo.AIVideoTaskRunReq) *PixverseV5Input {
+	quality := req.Resolution
+	if quality == "" {
+		quality = req.Quality
+	}
+
 	input := &PixverseV5Input{
 		Prompt:         req.Prompt,
-		Quality:        req.Quality,
+		Quality:        quality,
 		Duration:       req.Duration,
 		AspectRatio:    req.AspectRatio,
 		NegativePrompt: req.NegativePrompt,
@@ -159,13 +164,13 @@ func (p *PixverseV5Service) convertToTaskInfo(resp *PredictionResponse) *aivideo
 
 // PixverseV5Input Pixverse V5 模型输入参数
 type PixverseV5Input struct {
-	Prompt         string `json:"prompt"`                    // 文本描述（必填）
-	Quality        string `json:"quality,omitempty"`         // 视频分辨率: 360p, 540p, 720p, 1080p (默认: 540p)
-	Duration       int    `json:"duration,omitempty"`        // 视频时长（秒）: 5, 8 (默认: 5)
-	AspectRatio    string `json:"aspect_ratio,omitempty"`    // 视频比例: 16:9, 9:16, 1:1 (默认: 16:9)
-	Image          string `json:"image,omitempty"`           // 首帧图片URL（可选）
+	Prompt         string `json:"prompt"`                     // 文本描述（必填）
+	Quality        string `json:"quality,omitempty"`          // 视频分辨率: 360p, 540p, 720p, 1080p (默认: 540p)
+	Duration       int    `json:"duration,omitempty"`         // 视频时长（秒）: 5, 8 (默认: 5)
+	AspectRatio    string `json:"aspect_ratio,omitempty"`     // 视频比例: 16:9, 9:16, 1:1 (默认: 16:9)
+	Image          string `json:"image,omitempty"`            // 首帧图片URL（可选）
 	LastFrameImage string `json:"last_frame_image,omitempty"` // 末帧图片URL（可选，需配合image使用）
-	Effect         string `json:"effect,omitempty"`          // 特殊效果（可选）
-	NegativePrompt string `json:"negative_prompt,omitempty"` // 负面提示词
-	Seed           int    `json:"seed,omitempty"`            // 随机种子
+	Effect         string `json:"effect,omitempty"`           // 特殊效果（可选）
+	NegativePrompt string `json:"negative_prompt,omitempty"`  // 负面提示词
+	Seed           int    `json:"seed,omitempty"`             // 随机种子
 }

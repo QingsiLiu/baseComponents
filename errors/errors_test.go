@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"testing"
 )
 
@@ -99,9 +100,33 @@ func TestCause(t *testing.T) {
 
 	for i, tt := range tests {
 		got := Cause(tt.err)
-		if (got != nil && tt.want != nil && got.Error() != tt.want.Error()) || (got == nil && tt.want != nil) || (got != nil && tt.want == nil) {
+		if !sameErrorValue(got, tt.want) {
 			t.Errorf("test %d: got %#v, want %#v", i+1, got, tt.want)
 		}
+	}
+}
+
+func sameErrorValue(left, right error) bool {
+	if isNilErrorValue(left) && isNilErrorValue(right) {
+		return true
+	}
+	if isNilErrorValue(left) != isNilErrorValue(right) {
+		return false
+	}
+	return left.Error() == right.Error()
+}
+
+func isNilErrorValue(err error) bool {
+	if err == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(err)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
 	}
 }
 
@@ -309,8 +334,8 @@ func TestParseCoder(t *testing.T) {
 		wantCode      int
 		wantReference string
 	}{
-		{fmt.Errorf("yes error"), 500, "An internal server error occurred", 1, "http://github.com/marmotedu/errors/README.md"},
-		{WithCode(unknownCoder.Code(), "internal error message"), 500, "An internal server error occurred", 1, "http://github.com/marmotedu/errors/README.md"},
+		{fmt.Errorf("yes error"), 500, "An internal server error occurred", 1, "http://github.com/QingsiLiu/baseComponents/errors/README.md"},
+		{WithCode(unknownCoder.Code(), "internal error message"), 500, "An internal server error occurred", 1, "http://github.com/QingsiLiu/baseComponents/errors/README.md"},
 	}
 
 	for i, tt := range tests {

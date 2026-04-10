@@ -7,7 +7,9 @@ import (
 
 // TestNanoBananaService_Integration 集成测试
 func TestPrunaAIQwenImageFastService_Integration(t *testing.T) {
-	service := NewPrunaAIQwenImageFastServiceWithKey("")
+	requireReplicateToken(t)
+
+	service := NewPrunaAIQwenImageFastService()
 
 	// 测试完整的工作流程
 	req := &text2image.Text2ImageTaskRunReq{
@@ -32,7 +34,6 @@ func TestPrunaAIQwenImageFastService_Integration(t *testing.T) {
 		t.Fatalf("Failed to get task: %v", err)
 	}
 	t.Logf("Task status: %v", task)
-
 
 	t.Log("Integration test completed successfully")
 }

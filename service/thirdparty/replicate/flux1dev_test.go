@@ -7,7 +7,9 @@ import (
 
 // TestFlux1DevServiceTaskRun 测试实际的任务提交功能
 func TestFlux1DevServiceTaskRun(t *testing.T) {
-	service := NewFlux1DevServiceWithKey("")
+	requireReplicateToken(t)
+
+	service := NewFlux1DevService()
 	req := &text2image.Text2ImageTaskRunReq{
 		Prompt:            "a professional logo design for the brand 'coastal hues'. the creative concept features a watercolor logo illustration and the brand name.",
 		Seed:              -1,

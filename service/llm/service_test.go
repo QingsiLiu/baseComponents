@@ -6,13 +6,22 @@ func TestServiceTypeMappings(t *testing.T) {
 	if !IsValidSource(SourceWellAPIGemini) {
 		t.Fatalf("expected source %s to be valid", SourceWellAPIGemini)
 	}
+	if !IsValidSource(SourceWellAPIOpenAI) {
+		t.Fatalf("expected source %s to be valid", SourceWellAPIOpenAI)
+	}
 
 	if got := GetServiceType(SourceWellAPIGemini); got != ServiceTypeWellAPIGemini {
 		t.Fatalf("expected service type %s, got %s", ServiceTypeWellAPIGemini, got)
 	}
+	if got := GetServiceType(SourceWellAPIOpenAI); got != ServiceTypeWellAPIOpenAI {
+		t.Fatalf("expected service type %s, got %s", ServiceTypeWellAPIOpenAI, got)
+	}
 
 	if got := GetServiceSource(ServiceTypeWellAPIGemini); got != SourceWellAPIGemini {
 		t.Fatalf("expected source %s, got %s", SourceWellAPIGemini, got)
+	}
+	if got := GetServiceSource(ServiceTypeWellAPIOpenAI); got != SourceWellAPIOpenAI {
+		t.Fatalf("expected source %s, got %s", SourceWellAPIOpenAI, got)
 	}
 }
 

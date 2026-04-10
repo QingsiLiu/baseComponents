@@ -93,7 +93,7 @@ func (c *Client) CreateTask(payload *TaskCreateRequest) (*TaskCreateResponse, er
 	}
 
 	if result.Code != http.StatusOK {
-		return nil, fmt.Errorf("API error code %d: %s", result.Code, result.Message)
+		return nil, fmt.Errorf("API error code %d: %s", result.Code, result.GetMessage())
 	}
 
 	if result.Data == nil || result.Data.TaskID == "" {
@@ -150,7 +150,7 @@ func (c *Client) GetTaskRecord(taskID string) (*TaskRecordResponse, error) {
 	}
 
 	if result.Code != http.StatusOK {
-		return nil, fmt.Errorf("API error code %d: %s", result.Code, result.Message)
+		return nil, fmt.Errorf("API error code %d: %s", result.Code, result.GetMessage())
 	}
 
 	if result.Data == nil {

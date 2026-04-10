@@ -2,9 +2,8 @@ package replicate
 
 import (
 	"fmt"
-	"log"
 	"github.com/QingsiLiu/baseComponents/service/image2image"
-	"strconv"
+	"log"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
@@ -106,8 +105,15 @@ func (c *ControlNetService) convertToControlNetInput(req *image2image.Image2Imag
 	input := &ControlNetInput{
 		Prompt:          req.Prompt,
 		DDimSteps:       req.NumInferenceSteps,
-		ImageResolution: strconv.Itoa(req.OutputQuality),
+		ImageResolution: "768",
 		Scale:           req.GuidanceScale,
+	}
+
+	if input.DDimSteps == 0 {
+		input.DDimSteps = 40
+	}
+	if input.Scale == 0 {
+		input.Scale = 25
 	}
 
 	if len(req.ImageInputs) > 0 {
