@@ -29,6 +29,7 @@ var serviceConfigs = []ServiceInfo{
 	{Source: "replicate_prunaai_qwen_image_fast", ServiceType: "rpqf"},
 	{Source: "kie_qwen_image_text2image", ServiceType: "kqi"},
 	{Source: "kie_ideogram_v3_text2image", ServiceType: "kiv3"},
+	{Source: "kie_gpt_image_2_text2image", ServiceType: "kgi2"},
 }
 
 // 常量定义 - 从配置表自动生成
@@ -41,6 +42,7 @@ const (
 	SourceReplicatePrunaAIQwenImageFast = "replicate_prunaai_qwen_image_fast"
 	SourceKieQwenImageText2Image        = "kie_qwen_image_text2image"
 	SourceKieIdeogramV3Text2Image       = "kie_ideogram_v3_text2image"
+	SourceKieGPTImage2Text2Image        = "kie_gpt_image_2_text2image"
 )
 
 // 服务类型混淆映射常量
@@ -53,6 +55,7 @@ const (
 	ServiceTypeReplicatePrunaAIQwenImageFast = "rpqf"
 	ServiceTypeKieQwenImageText2Image        = "kqi"
 	ServiceTypeKieIdeogramV3Text2Image       = "kiv3"
+	ServiceTypeKieGPTImage2Text2Image        = "kgi2"
 )
 
 // 初始化时自动生成的映射表和切片

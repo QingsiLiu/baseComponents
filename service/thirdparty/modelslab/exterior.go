@@ -36,7 +36,7 @@ func (i *ExteriorService) TaskRun(req *image2image.Image2ImageTaskRunReq) (taskI
 	log.Printf("Exterior TaskRun request: %+v", exteriorReq)
 
 	var resp TaskRunResponse
-	err = i.client.PostAndDecode(ExteriorEndpoint, exteriorReq, &resp)
+	err = i.client.PostAndDecode(i.client.ExteriorEndpoint(), exteriorReq, &resp)
 	if err != nil {
 		log.Printf("Exterior TaskRun error: %v", err)
 		return "", fmt.Errorf("exterior task run error: %w", err)
@@ -52,7 +52,7 @@ func (i *ExteriorService) TaskGet(taskId string) (task *image2image.Image2ImageT
 	log.Printf("Exterior TaskGet request: %+v", req)
 
 	var resp TaskGetResponse
-	err = i.client.PostAndDecode(FetchEndpoint, req, &resp)
+	err = i.client.PostAndDecode(i.client.FetchEndpoint(), req, &resp)
 	if err != nil {
 		log.Printf("Exterior TaskGet error: %v", err)
 		return nil, fmt.Errorf("exterior task get error: %w", err)

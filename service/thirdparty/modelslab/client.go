@@ -7,7 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
+	"strings"
 	"time"
 )
 
@@ -15,26 +15,68 @@ type Client struct {
 	httpClient *http.Client
 	apiKey     string
 	timeout    time.Duration
+	baseURL    string
+}
+
+// Config ModelsLab 客户端配置。
+type Config struct {
+	APIKey  string
+	BaseURL string
+	Timeout time.Duration
 }
 
 func NewClient() *Client {
-	return &Client{
-		httpClient: &http.Client{Timeout: DefaultTimeout},
-		apiKey:     os.Getenv(APIKeyEnvVar),
-		timeout:    DefaultTimeout,
-	}
+	return NewClientWithConfig(Config{})
 }
 
 func NewClientWithKey(apiKey string) *Client {
+	return NewClientWithConfig(Config{APIKey: apiKey})
+}
+
+func NewClientWithConfig(cfg Config) *Client {
+	apiKey := strings.TrimSpace(cfg.APIKey)
+	if apiKey == "" {
+		apiKey = GetAPIKey()
+	}
+
+	baseURL := strings.TrimSpace(cfg.BaseURL)
+	if baseURL == "" {
+		baseURL = GetBaseURL()
+	} else {
+		baseURL = strings.TrimRight(baseURL, "/")
+	}
+
+	timeout := cfg.Timeout
+	if timeout <= 0 {
+		timeout = DefaultTimeout
+	}
+
 	return &Client{
-		httpClient: &http.Client{Timeout: DefaultTimeout},
+		httpClient: &http.Client{Timeout: timeout},
 		apiKey:     apiKey,
-		timeout:    DefaultTimeout,
+		timeout:    timeout,
+		baseURL:    baseURL,
 	}
 }
 
 func (c *Client) GetAPIKey() string {
 	return c.apiKey
+}
+
+func (c *Client) Text2ImgEndpoint() string {
+	return c.baseURL + PathText2Img
+}
+
+func (c *Client) InteriorEndpoint() string {
+	return c.baseURL + PathInterior
+}
+
+func (c *Client) ExteriorEndpoint() string {
+	return c.baseURL + PathExterior
+}
+
+func (c *Client) FetchEndpoint() string {
+	return c.baseURL + PathFetch
 }
 
 func (c *Client) Post(endpoint string, payload interface{}) (*http.Response, error) {

@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -14,21 +15,47 @@ type Client struct {
 	httpClient *http.Client
 	apiToken   string
 	timeout    time.Duration
+	baseURL    string
+}
+
+// Config Replicate 客户端配置。
+type Config struct {
+	APIToken string
+	BaseURL  string
+	Timeout  time.Duration
 }
 
 func NewClient() *Client {
-	return &Client{
-		httpClient: &http.Client{Timeout: DefaultTimeout},
-		apiToken:   GetAPIToken(),
-		timeout:    DefaultTimeout,
-	}
+	return NewClientWithConfig(Config{})
 }
 
 func NewClientWithToken(token string) *Client {
+	return NewClientWithConfig(Config{APIToken: token})
+}
+
+func NewClientWithConfig(cfg Config) *Client {
+	apiToken := strings.TrimSpace(cfg.APIToken)
+	if apiToken == "" {
+		apiToken = GetAPIToken()
+	}
+
+	baseURL := strings.TrimSpace(cfg.BaseURL)
+	if baseURL == "" {
+		baseURL = GetBaseURL()
+	} else {
+		baseURL = strings.TrimRight(baseURL, "/")
+	}
+
+	timeout := cfg.Timeout
+	if timeout <= 0 {
+		timeout = DefaultTimeout
+	}
+
 	return &Client{
-		httpClient: &http.Client{Timeout: DefaultTimeout},
-		apiToken:   token,
-		timeout:    DefaultTimeout,
+		httpClient: &http.Client{Timeout: timeout},
+		apiToken:   apiToken,
+		timeout:    timeout,
+		baseURL:    baseURL,
 	}
 }
 
@@ -37,7 +64,7 @@ func (c *Client) GetAPIToken() string {
 }
 
 func (c *Client) CreatePrediction(req *PredictionRequest) (*PredictionResponse, error) {
-	endpoint := BaseURL + PathPredictions
+	endpoint := c.baseURL + PathPredictions
 
 	reqBody, err := json.Marshal(req)
 	if err != nil {
@@ -91,7 +118,7 @@ func (c *Client) CreatePrediction(req *PredictionRequest) (*PredictionResponse, 
 
 // GetPrediction 获取预测任务信息
 func (c *Client) GetPrediction(predictionID string) (*PredictionResponse, error) {
-	endpoint := BaseURL + fmt.Sprintf(PathPredictionGet, predictionID)
+	endpoint := c.baseURL + fmt.Sprintf(PathPredictionGet, predictionID)
 
 	httpReq, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -135,7 +162,7 @@ func (c *Client) GetPrediction(predictionID string) (*PredictionResponse, error)
 
 // CancelPrediction 取消预测任务
 func (c *Client) CancelPrediction(predictionID string) (*PredictionResponse, error) {
-	endpoint := BaseURL + fmt.Sprintf(PathPredictionCancel, predictionID)
+	endpoint := c.baseURL + fmt.Sprintf(PathPredictionCancel, predictionID)
 
 	httpReq, err := http.NewRequest(http.MethodPost, endpoint, nil)
 	if err != nil {
@@ -179,7 +206,7 @@ func (c *Client) CancelPrediction(predictionID string) (*PredictionResponse, err
 
 // ListPredictions 列出预测任务
 func (c *Client) ListPredictions() ([]PredictionResponse, error) {
-	endpoint := BaseURL + PathPredictions
+	endpoint := c.baseURL + PathPredictions
 
 	httpReq, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {

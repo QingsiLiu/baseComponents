@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -19,23 +20,47 @@ type Client struct {
 	baseURL    string
 }
 
+// Config KIE 客户端配置。
+type Config struct {
+	APIKey  string
+	BaseURL string
+	Timeout time.Duration
+}
+
 // NewClient 使用环境变量中的 API Key 创建客户端
 func NewClient() *Client {
-	return &Client{
-		httpClient: &http.Client{Timeout: DefaultTimeout},
-		apiKey:     GetAPIKey(),
-		timeout:    DefaultTimeout,
-		baseURL:    BaseURL,
-	}
+	return NewClientWithConfig(Config{})
 }
 
 // NewClientWithKey 使用指定 API Key 创建客户端
 func NewClientWithKey(apiKey string) *Client {
+	return NewClientWithConfig(Config{APIKey: apiKey})
+}
+
+// NewClientWithConfig 使用自定义配置创建客户端。
+func NewClientWithConfig(cfg Config) *Client {
+	apiKey := strings.TrimSpace(cfg.APIKey)
+	if apiKey == "" {
+		apiKey = GetAPIKey()
+	}
+
+	baseURL := strings.TrimSpace(cfg.BaseURL)
+	if baseURL == "" {
+		baseURL = GetBaseURL()
+	} else {
+		baseURL = strings.TrimRight(baseURL, "/")
+	}
+
+	timeout := cfg.Timeout
+	if timeout <= 0 {
+		timeout = DefaultTimeout
+	}
+
 	return &Client{
-		httpClient: &http.Client{Timeout: DefaultTimeout},
+		httpClient: &http.Client{Timeout: timeout},
 		apiKey:     apiKey,
-		timeout:    DefaultTimeout,
-		baseURL:    BaseURL,
+		timeout:    timeout,
+		baseURL:    baseURL,
 	}
 }
 

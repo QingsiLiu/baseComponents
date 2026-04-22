@@ -36,7 +36,7 @@ func (i *InteriorService) TaskRun(req *image2image.Image2ImageTaskRunReq) (taskI
 	log.Printf("Interior TaskRun request: %+v", interiorReq)
 
 	var resp TaskRunResponse
-	err = i.client.PostAndDecode(InteriorEndpoint, interiorReq, &resp)
+	err = i.client.PostAndDecode(i.client.InteriorEndpoint(), interiorReq, &resp)
 	if err != nil {
 		log.Printf("Interior TaskRun error: %v", err)
 		return "", fmt.Errorf("interior task run error: %w", err)
@@ -52,7 +52,7 @@ func (i *InteriorService) TaskGet(taskId string) (task *image2image.Image2ImageT
 	log.Printf("Interior TaskGet request: %+v", req)
 
 	var resp TaskGetResponse
-	err = i.client.PostAndDecode(FetchEndpoint, req, &resp)
+	err = i.client.PostAndDecode(i.client.FetchEndpoint(), req, &resp)
 	if err != nil {
 		log.Printf("Interior TaskGet error: %v", err)
 		return nil, fmt.Errorf("interior task get error: %w", err)

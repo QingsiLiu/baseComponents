@@ -7,17 +7,18 @@ import (
 )
 
 const (
-	BaseURL             = "https://wellapi.ai"
-	DefaultTimeout      = 30 * time.Second
-	DefaultRetryMax     = 3
-	DefaultRetryDelay   = 200 * time.Millisecond
-	APIKeyEnvVar        = "WELLAPI_API_KEY"
-	BaseURLEnvVar       = "WELLAPI_BASE_URL"
-	PathModels          = "/v1/models"
-	PathChatCompletions = "/v1/chat/completions"
-	PathResponses       = "/v1/responses"
-	PathGenerateFormat  = "/v1beta/models/%s:generateContent"
-	PathStreamFormat    = "/v1beta/models/%s:streamGenerateContent"
+	BaseURL               = "https://wellapi.ai"
+	DefaultTimeout        = 30 * time.Second
+	DefaultRetryMax       = 3
+	DefaultRetryDelay     = 200 * time.Millisecond
+	APIKeyEnvVar          = "WELLAPI_API_KEY"
+	BaseURLEnvVar         = "WELLAPI_BASE_URL"
+	PathModels            = "/v1/models"
+	PathChatCompletions   = "/v1/chat/completions"
+	PathImagesGenerations = "/v1/images/generations"
+	PathResponses         = "/v1/responses"
+	PathGenerateFormat    = "/v1beta/models/%s:generateContent"
+	PathStreamFormat      = "/v1beta/models/%s:streamGenerateContent"
 )
 
 const (
@@ -39,6 +40,7 @@ const (
 	ModelGPT54             = "gpt-5.4"
 	ModelGPT5Mini20250807  = "gpt-5-mini-2025-08-07"
 	ModelGPT5Nano20250807  = "gpt-5-nano-2025-08-07"
+	ModelGPTImage2         = "gpt-image-2"
 )
 
 // Config WellAPI 客户端配置

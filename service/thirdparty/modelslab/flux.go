@@ -36,7 +36,7 @@ func (f *FluxService) TaskRun(req *text2image.Text2ImageTaskRunReq) (taskId stri
 	log.Printf("Flux TaskRun request: %+v", fluxReq)
 
 	var resp TaskRunResponse
-	err = f.client.PostAndDecode(Text2ImgEndpoint, fluxReq, &resp)
+	err = f.client.PostAndDecode(f.client.Text2ImgEndpoint(), fluxReq, &resp)
 	if err != nil {
 		log.Printf("Flux TaskRun error: %v", err)
 		return "", fmt.Errorf("flux task run error: %w", err)
@@ -52,7 +52,7 @@ func (f *FluxService) TaskGet(taskId string) (task *text2image.Text2ImageTaskInf
 	log.Printf("Flux TaskGet request: %+v", req)
 
 	var resp TaskGetResponse
-	err = f.client.PostAndDecode(FetchEndpoint, req, &resp)
+	err = f.client.PostAndDecode(f.client.FetchEndpoint(), req, &resp)
 	if err != nil {
 		log.Printf("Flux TaskGet error: %v", err)
 		return nil, fmt.Errorf("flux task get error: %w", err)

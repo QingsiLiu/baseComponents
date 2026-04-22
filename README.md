@@ -35,6 +35,7 @@
 - **AIVideo / Kling**: 面向 Kling 专属复杂能力的子包，承接动作控制、视频特效等 provider-specific 协议
 - **WellAPI Gemini**: 基于 Gemini 原生 `generateContent` 的 provider，实现结构化输出、函数调用、URL Context、Google Search、Code Execution
 - **WellAPI OpenAI**: 基于 WellAPI 的 OpenAI 兼容 provider，封装 `/v1/responses` 与 `/v1/chat/completions`
+- **WellAPI Image**: 基于 WellAPI 的同步图片生成 provider，封装 `/v1/images/generations`
 - **WellAPI Kling**: 基于 WellAPI 的 Kling 异步任务服务，支持动作控制、视频特效等能力
 - **KIE**: 聚合 KIE 下的文生图、图生图、视频生成模型接入
 
@@ -184,6 +185,81 @@ AI 能力的目录约定：
 - 顶层 `service/*` 优先按能力域组织，例如 `llm`、`text2image`、`image2image`、`aivideo`
 - 复杂且明显 provider-specific 的协议，优先放到能力域下的子包中，例如 `service/aivideo/kling`
 - `service/thirdparty/*` 只放 provider 实现，不再承担顶层能力抽象的职责
+- `service/v2/*` 是新一代 AI 能力入口，第一阶段覆盖图像和视频，使用 `capability + model + provider` 路由同模型多 provider 场景
+
+v2 详细设计与扩展规范：
+
+- [`docs/ai-v2-architecture.md`](docs/ai-v2-architecture.md)
+- [`docs/ai-v2-conventions.md`](docs/ai-v2-conventions.md)
+
+### AI v2 图像/视频能力示例
+
+`service/v2` 保留 v1 接口不变，新增模型目录和 provider 显式路由。同一个模型存在多个 provider 时，调用方必须指定 provider。
+
+当前 `service/v2` 的图片/视频覆盖清单：
+
+- `image.generate`
+  - `gpt-image-2`: `kie`, `wellapi`
+  - `qwen-image`: `replicate`, `kie`
+  - `qwen-image-fast`: `replicate`
+  - `flux-schnell`: `replicate`
+  - `flux1dev`: `replicate`
+  - `modelslab-flux`: `modelslab`
+  - `ideogram-v3`: `kie`
+- `image.edit`
+  - `nano-banana`: `replicate`, `kie`
+  - `controlnet`: `replicate`
+  - `modelslab-interior`: `modelslab`
+  - `modelslab-exterior`: `modelslab`
+- `video.generate`
+  - `kling-2.6-image-to-video`: `kie`
+  - `kling-2.6-text-to-video`: `kie`
+  - `kling-3.0-video`: `kie`
+  - `seedance-1.5-pro`: `kie`
+  - `seedance-2`: `kie`
+  - `seedance-2-fast`: `kie`
+  - `pixverse-v5`: `replicate`
+
+说明：
+
+- `ModelsLab interior/exterior` 先作为 portable `image.edit` 的基础映射接入，暂不暴露其室内/室外专属高级参数。
+- `WellAPI Kling motion-control/effects` 仍属于 native-only 能力，不进入 portable `video.generate`，请使用 `service/v2/native/wellapi/kling`。
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/QingsiLiu/baseComponents/service/v2/core"
+    imagegenerate "github.com/QingsiLiu/baseComponents/service/v2/image/generate"
+    v2runtime "github.com/QingsiLiu/baseComponents/service/v2/runtime"
+)
+
+func main() {
+    rt, err := v2runtime.NewBuiltins(v2runtime.Config{
+        WellAPI: v2runtime.ProviderConfig{APIKey: "your-wellapi-key"},
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    op, err := rt.ImageGenerate().Run(context.Background(), core.Target{
+        Model:    core.ModelGPTImage2,
+        Provider: core.ProviderWellAPI,
+    }, &imagegenerate.Request{
+        Prompt: "A cinematic night city poster with neon reflections on a rainy street.",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Println(op.Status, op.Result.Images)
+}
+```
+
+异步 provider 会先返回 `pending/running` 的 `Operation`，之后用同一个 service 调用 `Refresh` 获取结果。
 
 ### WellAPI OpenAI 能力示例
 
@@ -217,6 +293,60 @@ func main() {
     }
 
     log.Println(resp.Text)
+}
+```
+
+### WellAPI 图片生成示例
+
+```go
+package main
+
+import (
+    "log"
+
+    "github.com/QingsiLiu/baseComponents/service/thirdparty/wellapi"
+)
+
+func main() {
+    service := wellapi.NewImageService()
+
+    resp, err := service.Generate(&wellapi.ImageGenerateReq{
+        Prompt: "A cinematic night city poster with neon reflections on a rainy street.",
+        Size:   "1024x1536",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    for _, image := range resp.Data {
+        log.Println(image.URL, image.RevisedPrompt)
+    }
+}
+```
+
+### KIE GPT Image-2 文生图示例
+
+```go
+package main
+
+import (
+    "log"
+
+    "github.com/QingsiLiu/baseComponents/service/text2image"
+    "github.com/QingsiLiu/baseComponents/service/thirdparty/kie"
+)
+
+func main() {
+    service := kie.NewGPTImage2Text2ImageService()
+
+    taskID, err := service.TaskRun(&text2image.Text2ImageTaskRunReq{
+        Prompt: "A cinematic night city poster with neon reflections on a rainy street.",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    log.Println("submitted task:", taskID)
 }
 ```
 

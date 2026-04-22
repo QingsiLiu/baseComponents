@@ -1,10 +1,12 @@
 # WellAPI
 
-`wellapi` 包当前提供两类能力：
+`wellapi` 包当前提供三类能力：
 
 - LLM provider
   - `NewGeminiService`：封装 Gemini 原生 `generateContent`
   - `NewOpenAIService`：封装 OpenAI 兼容的 `/v1/responses` 与 `/v1/chat/completions`
+- Image provider
+  - `NewImageService`：封装同步 `POST /v1/images/generations`
 - Kling 异步任务服务
   - `NewKlingMotionControlService`
   - `NewKlingEffectsService`
@@ -13,6 +15,7 @@
 
 - 文本生成
 - 图片等 base64 内联输入
+- 同步图片生成（`gpt-image-2` 默认模型，可覆盖）
 - 结构化 JSON 输出
 - 函数调用
 - 模型列表查询
@@ -23,6 +26,7 @@
 
 - Gemini provider 继续优先封装 **Gemini 原生格式**
 - OpenAI provider 在 v1 只支持公共抽象里的通用子集，不暴露 Responses 专属字段
+- Image provider 直接暴露 WellAPI 原生同步接口，不实现 `service/text2image` 的任务语义
 - OpenAI provider 暂不支持 `EnableURLContext` / `EnableGoogleSearch` / `EnableCodeExecution`
 - 调用方负责将媒体内容编码为 base64，本 SDK 不负责下载远程文件
 - Gemini 默认会发送 `thinkingBudget=0`，避免空文本或只消耗 reasoning token
@@ -31,6 +35,7 @@
 
 - Gemini：`gemini-3.1-flash-lite-preview`、`gemini-3.1-pro-preview`、`gemini-3-pro-preview`、`gemini-3-flash-preview`、`gemini-2.5-pro`、`gemini-2.5-flash`
 - OpenAI：`gpt-5.4-mini`、`gpt-5.4-mini-2026-03-17`、`gpt-5.4-nano`、`gpt-5.4-nano-2026-03-17`、`gpt-5.4`、`gpt-5-mini-2025-08-07`、`gpt-5-nano-2025-08-07`
+- Image：`gpt-image-2`
 
 ## 环境变量
 
@@ -139,8 +144,48 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(resp.Text)
+log.Println(resp.Text)
 }
+```
+
+## OpenAI 图片生成
+
+`wellapi` 的图片生成当前是同步接口，不走 `service/text2image`：
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/QingsiLiu/baseComponents/service/thirdparty/wellapi"
+)
+
+func main() {
+	service := wellapi.NewImageService()
+
+	resp, err := service.Generate(&wellapi.ImageGenerateReq{
+		Prompt: "A watercolor otter reading a newspaper in a cafe.",
+		Size:   "1024x1536",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, image := range resp.Data {
+		log.Println(image.URL, image.RevisedPrompt)
+	}
+}
+```
+
+如果需要 base64 结果，可以显式指定：
+
+```go
+resp, err := service.Generate(&wellapi.ImageGenerateReq{
+	Model:          wellapi.ModelGPTImage2,
+	Prompt:         "A watercolor otter reading a newspaper in a cafe.",
+	ResponseFormat: "b64_json",
+})
 ```
 
 ## 图片理解（base64 image）
