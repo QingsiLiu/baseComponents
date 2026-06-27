@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -40,6 +41,57 @@ func TestNewS3Svc(t *testing.T) {
 
 	if service1 != service2 {
 		t.Fatal("NewS3Svc should return the same instance (singleton)")
+	}
+}
+
+func TestNewS3ServiceWithOptionsUsesCustomEndpointForPresign(t *testing.T) {
+	service, err := NewS3ServiceWithOptions(S3Options{
+		Region:          "nyc3",
+		Endpoint:        "https://nyc3.digitaloceanspaces.com",
+		AccessKeyID:     "test-access-key",
+		SecretAccessKey: "test-secret-key",
+		PresignTTL:      30 * time.Minute,
+	})
+	if err != nil {
+		t.Fatalf("NewS3ServiceWithOptions failed: %v", err)
+	}
+
+	putURL, err := service.PreSignPutObject("polai-private-media-prod", "input/example.jpg")
+	if err != nil {
+		t.Fatalf("PreSignPutObject failed: %v", err)
+	}
+
+	parsed, err := url.Parse(putURL)
+	if err != nil {
+		t.Fatalf("presigned URL is invalid: %v", err)
+	}
+	if parsed.Host != "polai-private-media-prod.nyc3.digitaloceanspaces.com" {
+		t.Fatalf("host = %q, want virtual-hosted DO endpoint", parsed.Host)
+	}
+	if !strings.HasPrefix(parsed.Path, "/input/example.jpg") {
+		t.Fatalf("path = %q, want object key path", parsed.Path)
+	}
+	if got := parsed.Query().Get("X-Amz-Expires"); got != "1800" {
+		t.Fatalf("X-Amz-Expires = %q, want 1800", got)
+	}
+}
+
+func TestGenerateDownloadURLUsesPublicBaseURL(t *testing.T) {
+	service, err := NewS3ServiceWithOptions(S3Options{
+		Region:          "nyc3",
+		Endpoint:        "https://nyc3.digitaloceanspaces.com",
+		AccessKeyID:     "test-access-key",
+		SecretAccessKey: "test-secret-key",
+		PublicBaseURL:   "https://cdn.polai.example/media",
+	})
+	if err != nil {
+		t.Fatalf("NewS3ServiceWithOptions failed: %v", err)
+	}
+
+	got := service.GenerateDownloadURL("polai-public-media-prod", "results/kie task/output image.jpg")
+	want := "https://cdn.polai.example/media/results/kie%20task/output%20image.jpg"
+	if got != want {
+		t.Fatalf("GenerateDownloadURL = %q, want %q", got, want)
 	}
 }
 

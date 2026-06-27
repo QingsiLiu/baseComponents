@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -12,15 +13,40 @@ import (
 	"github.com/QingsiLiu/baseComponents/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
+const defaultPresignTTL = 15 * time.Minute
+
+// S3Options configures AWS S3-compatible object stores such as DigitalOcean Spaces.
+type S3Options struct {
+	Region          string
+	Endpoint        string
+	AccessKeyID     string
+	SecretAccessKey string
+	SessionToken    string
+	UsePathStyle    bool
+	PublicBaseURL   string
+	PresignTTL      time.Duration
+}
+
+// UploadObjectOptions configures optional object metadata for uploads.
+type UploadObjectOptions struct {
+	ContentType  string
+	CacheControl string
+	ACL          string
+	Metadata     map[string]string
+}
+
 // S3Service S3存储服务
 type S3Service struct {
-	client   *s3.Client
-	uploader *manager.Uploader
+	client        *s3.Client
+	uploader      *manager.Uploader
+	presignTTL    time.Duration
+	publicBaseURL string
 }
 
 var s3Svc *S3Service
@@ -56,35 +82,92 @@ func NewS3Service(region string) (*S3Service, error) {
 	uploader := manager.NewUploader(client)
 
 	return &S3Service{
-		client:   client,
-		uploader: uploader,
+		client:     client,
+		uploader:   uploader,
+		presignTTL: defaultPresignTTL,
+	}, nil
+}
+
+// NewS3ServiceWithOptions 创建 S3-compatible 服务实例，支持自定义 endpoint。
+func NewS3ServiceWithOptions(options S3Options) (*S3Service, error) {
+	loadOptions := []func(*config.LoadOptions) error{
+		config.WithRegion(options.Region),
+	}
+	if options.AccessKeyID != "" || options.SecretAccessKey != "" || options.SessionToken != "" {
+		loadOptions = append(loadOptions, config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				options.AccessKeyID,
+				options.SecretAccessKey,
+				options.SessionToken,
+			),
+		))
+	}
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(), loadOptions...)
+	if err != nil {
+		return nil, err
+	}
+
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = options.UsePathStyle
+		if options.Endpoint != "" {
+			o.BaseEndpoint = aws.String(strings.TrimRight(options.Endpoint, "/"))
+		}
+	})
+	uploader := manager.NewUploader(client)
+
+	presignTTL := options.PresignTTL
+	if presignTTL <= 0 {
+		presignTTL = defaultPresignTTL
+	}
+
+	return &S3Service{
+		client:        client,
+		uploader:      uploader,
+		presignTTL:    presignTTL,
+		publicBaseURL: strings.TrimRight(options.PublicBaseURL, "/"),
 	}, nil
 }
 
 // UploadObject 上传文件到S3
 func (s *S3Service) UploadObject(bucketName, fileKey string, data []byte) error {
-	contentType := storage.GetContentType(fileKey)
+	return s.UploadObjectWithOptions(bucketName, fileKey, data, UploadObjectOptions{})
+}
 
-	_, err := s.uploader.Upload(context.TODO(), &s3.PutObjectInput{
-		Bucket:      aws.String(bucketName),
-		Key:         aws.String(fileKey),
-		Body:        bytes.NewReader(data),
-		ContentType: aws.String(contentType),
-	})
-
-	return err
+// UploadObjectWithOptions 上传文件并设置可选对象元数据。
+func (s *S3Service) UploadObjectWithOptions(bucketName, fileKey string, data []byte, options UploadObjectOptions) error {
+	return s.UploadObjectStreamWithOptions(bucketName, fileKey, bytes.NewReader(data), options)
 }
 
 // UploadObjectStream 流式上传文件到S3
 func (s *S3Service) UploadObjectStream(bucketName, fileKey string, file io.Reader) error {
-	contentType := storage.GetContentType(fileKey)
+	return s.UploadObjectStreamWithOptions(bucketName, fileKey, file, UploadObjectOptions{})
+}
 
-	_, err := s.uploader.Upload(context.TODO(), &s3.PutObjectInput{
+// UploadObjectStreamWithOptions 流式上传文件并设置可选对象元数据。
+func (s *S3Service) UploadObjectStreamWithOptions(bucketName, fileKey string, file io.Reader, options UploadObjectOptions) error {
+	contentType := options.ContentType
+	if contentType == "" {
+		contentType = storage.GetContentType(fileKey)
+	}
+
+	input := &s3.PutObjectInput{
 		Bucket:      aws.String(bucketName),
 		Key:         aws.String(fileKey),
 		Body:        file,
 		ContentType: aws.String(contentType),
-	})
+	}
+	if options.CacheControl != "" {
+		input.CacheControl = aws.String(options.CacheControl)
+	}
+	if options.ACL != "" {
+		input.ACL = types.ObjectCannedACL(options.ACL)
+	}
+	if len(options.Metadata) > 0 {
+		input.Metadata = options.Metadata
+	}
+
+	_, err := s.uploader.Upload(context.TODO(), input)
 
 	return err
 }
@@ -111,7 +194,7 @@ func (s *S3Service) PreSignPutObject(bucketName, fileKey string) (string, error)
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fileKey),
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = time.Duration(15 * time.Minute)
+		opts.Expires = s.presignDuration()
 	})
 
 	if err != nil {
@@ -144,7 +227,7 @@ func (s *S3Service) BatchPreSignPutObject(bucketName string, fileKeys []string, 
 				Bucket: aws.String(bucketName),
 				Key:    aws.String(actualKey),
 			}, func(opts *s3.PresignOptions) {
-				opts.Expires = time.Duration(15 * time.Minute)
+				opts.Expires = s.presignDuration()
 			})
 
 			mu.Lock()
@@ -169,7 +252,7 @@ func (s *S3Service) PreSignGetObject(bucketName, fileKey string) (string, error)
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fileKey),
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = time.Duration(15 * time.Minute)
+		opts.Expires = s.presignDuration()
 	})
 
 	if err != nil {
@@ -457,7 +540,7 @@ func (s *S3Service) PreSignDeleteObject(bucketName, fileKey string) (string, err
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fileKey),
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = 15 * time.Minute // 默认15分钟过期
+		opts.Expires = s.presignDuration()
 	})
 
 	if err != nil {
@@ -520,11 +603,25 @@ func (s *S3Service) SetObjectMetadata(bucketName, fileKey string, metadata map[s
 	return err
 }
 
-// GenerateDownloadURL 生成下载URL（与PreSignGetObject相同）
+// GenerateDownloadURL 生成下载URL。配置 PublicBaseURL 时返回公开 CDN URL，否则返回预签名 URL。
 func (s *S3Service) GenerateDownloadURL(bucketName, fileKey string) string {
+	if s.publicBaseURL != "" {
+		publicURL, err := url.JoinPath(s.publicBaseURL, fileKey)
+		if err == nil {
+			return publicURL
+		}
+	}
+
 	url, err := s.PreSignGetObject(bucketName, fileKey)
 	if err != nil {
 		return ""
 	}
 	return url
+}
+
+func (s *S3Service) presignDuration() time.Duration {
+	if s.presignTTL > 0 {
+		return s.presignTTL
+	}
+	return defaultPresignTTL
 }
