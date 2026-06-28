@@ -41,6 +41,13 @@ type UploadObjectOptions struct {
 	Metadata     map[string]string
 }
 
+// PreSignPutObjectRequest contains a presigned PUT URL and the headers the
+// caller must send with that PUT request.
+type PreSignPutObjectRequest struct {
+	URL     string
+	Headers map[string]string
+}
+
 // S3Service S3存储服务
 type S3Service struct {
 	client        *s3.Client
@@ -188,20 +195,59 @@ func (s *S3Service) GetObject(bucketName, fileKey string) ([]byte, error) {
 
 // PreSignPutObject 生成预签名上传URL
 func (s *S3Service) PreSignPutObject(bucketName, fileKey string) (string, error) {
+	return s.PreSignPutObjectWithOptions(bucketName, fileKey, UploadObjectOptions{})
+}
+
+// PreSignPutObjectWithOptions 生成带可选上传头的预签名上传URL。
+// 调用方 PUT 时必须带上与 options 对应的 header。
+func (s *S3Service) PreSignPutObjectWithOptions(bucketName, fileKey string, options UploadObjectOptions) (string, error) {
+	request, err := s.PreSignPutObjectRequestWithOptions(bucketName, fileKey, options)
+	if err != nil {
+		return "", err
+	}
+	return request.URL, nil
+}
+
+// PreSignPutObjectRequestWithOptions 生成带可选上传头的预签名 PUT 请求。
+func (s *S3Service) PreSignPutObjectRequestWithOptions(bucketName, fileKey string, options UploadObjectOptions) (*PreSignPutObjectRequest, error) {
 	presignClient := s3.NewPresignClient(s.client)
 
-	request, err := presignClient.PresignPutObject(context.TODO(), &s3.PutObjectInput{
+	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fileKey),
-	}, func(opts *s3.PresignOptions) {
+	}
+	headers := make(map[string]string)
+	if options.ContentType != "" {
+		input.ContentType = aws.String(options.ContentType)
+		headers["Content-Type"] = options.ContentType
+	}
+	if options.CacheControl != "" {
+		input.CacheControl = aws.String(options.CacheControl)
+		headers["Cache-Control"] = options.CacheControl
+	}
+	if options.ACL != "" {
+		input.ACL = types.ObjectCannedACL(options.ACL)
+		headers["x-amz-acl"] = options.ACL
+	}
+	if len(options.Metadata) > 0 {
+		input.Metadata = options.Metadata
+		for key, value := range options.Metadata {
+			headers["x-amz-meta-"+strings.ToLower(key)] = value
+		}
+	}
+
+	request, err := presignClient.PresignPutObject(context.TODO(), input, func(opts *s3.PresignOptions) {
 		opts.Expires = s.presignDuration()
 	})
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return request.URL, nil
+	return &PreSignPutObjectRequest{
+		URL:     request.URL,
+		Headers: headers,
+	}, nil
 }
 
 // BatchPreSignPutObject 批量生成预签名上传URL

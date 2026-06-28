@@ -76,6 +76,48 @@ func TestNewS3ServiceWithOptionsUsesCustomEndpointForPresign(t *testing.T) {
 	}
 }
 
+func TestPreSignPutObjectRequestWithOptionsSignsACLHeader(t *testing.T) {
+	service, err := NewS3ServiceWithOptions(S3Options{
+		Region:          "nyc3",
+		Endpoint:        "https://nyc3.digitaloceanspaces.com",
+		AccessKeyID:     "test-access-key",
+		SecretAccessKey: "test-secret-key",
+	})
+	if err != nil {
+		t.Fatalf("NewS3ServiceWithOptions failed: %v", err)
+	}
+
+	request, err := service.PreSignPutObjectRequestWithOptions("polai-public-media-prod", "admin/templates/example.png", UploadObjectOptions{
+		ACL:          "public-read",
+		ContentType:  "image/png",
+		CacheControl: "public, max-age=31536000, immutable",
+	})
+	if err != nil {
+		t.Fatalf("PreSignPutObjectRequestWithOptions failed: %v", err)
+	}
+
+	parsed, err := url.Parse(request.URL)
+	if err != nil {
+		t.Fatalf("presigned URL is invalid: %v", err)
+	}
+	signedHeaders := parsed.Query().Get("X-Amz-SignedHeaders")
+	for _, header := range []string{"host", "x-amz-acl", "cache-control"} {
+		if !strings.Contains(signedHeaders, header) {
+			t.Fatalf("signed headers = %q, want %q", signedHeaders, header)
+		}
+	}
+	wantHeaders := map[string]string{
+		"x-amz-acl":     "public-read",
+		"Content-Type":  "image/png",
+		"Cache-Control": "public, max-age=31536000, immutable",
+	}
+	for key, want := range wantHeaders {
+		if got := request.Headers[key]; got != want {
+			t.Fatalf("header %s = %q, want %q", key, got, want)
+		}
+	}
+}
+
 func TestGenerateDownloadURLUsesPublicBaseURL(t *testing.T) {
 	service, err := NewS3ServiceWithOptions(S3Options{
 		Region:          "nyc3",
